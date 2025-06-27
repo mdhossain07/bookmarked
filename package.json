@@ -1,0 +1,43 @@
+{
+  "name": "bookmarked",
+  "version": "1.0.0",
+  "description": "Personal media tracking application - books and movies",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn workspace bookmarked-backend dev\" \"yarn workspace bookmarked-frontend dev\"",
+    "build": "yarn workspace bookmarked-types build && yarn workspace bookmarked-backend build && yarn workspace bookmarked-frontend build",
+    "start": "yarn workspace bookmarked-backend start",
+    "type-check": "yarn workspaces run type-check",
+    "lint": "yarn workspaces run lint",
+    "clean": "yarn workspaces run clean",
+    "install-all": "yarn install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/bookmarked.git"
+  },
+  "keywords": [
+    "media-tracking",
+    "books",
+    "movies",
+    "personal",
+    "typescript",
+    "react",
+    "nodejs"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}

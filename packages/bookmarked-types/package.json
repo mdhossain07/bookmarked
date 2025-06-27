@@ -1,0 +1,36 @@
+{
+  "name": "bookmarked-types",
+  "version": "1.0.0",
+  "description": "Shared TypeScript types and Zod schemas for Bookmarked application",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.5",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0"
+  },
+  "keywords": [
+    "typescript",
+    "types",
+    "zod",
+    "validation",
+    "bookmarked"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
