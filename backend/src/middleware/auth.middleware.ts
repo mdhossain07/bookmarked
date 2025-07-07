@@ -5,7 +5,7 @@ import {
   HttpStatus,
   TokenPayload,
 } from "bookmarked-types";
-import { verifyToken, extractTokenFromHeader } from "../utils/jwt";
+import { verifyToken, extractTokenFromRequest } from "../utils/jwt";
 
 // Extend Express Request interface to include user
 declare global {
@@ -26,7 +26,7 @@ export const authenticate = (
   next: NextFunction
 ) => {
   try {
-    const token = extractTokenFromHeader(req.headers.authorization);
+    const token = extractTokenFromRequest(req);
 
     if (!token) {
       const response: ApiResponse = {
@@ -59,30 +59,6 @@ export const authenticate = (
     };
 
     return res.status(HttpStatus.UNAUTHORIZED).json(response);
-  }
-};
-
-/**
- * Optional authentication middleware
- * Adds user info to request if token is provided, but doesn't require it
- */
-export const optionalAuthenticate = (
-  req: Request,
-  _res: Response,
-  next: NextFunction
-) => {
-  try {
-    const token = extractTokenFromHeader(req.headers.authorization);
-
-    if (token) {
-      const decoded = verifyToken(token);
-      req.user = decoded;
-    }
-
-    return next();
-  } catch (error) {
-    // For optional auth, we don't return an error, just continue without user
-    return next();
   }
 };
 

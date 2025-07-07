@@ -13,7 +13,7 @@ const startServer = async () => {
     // Start HTTP server
     const server = app.listen(config.app.port, () => {
       console.log(
-        `🌐 Server is running on PORT: http://localhost:${config.app.port}`
+        `🌐 Server is running on: http://localhost:${config.app.port}`
       );
     });
 

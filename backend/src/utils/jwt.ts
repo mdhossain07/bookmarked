@@ -1,6 +1,27 @@
 import jwt from "jsonwebtoken";
+import { Request, Response } from "express";
 import { config } from "../config/environment";
 import type { TokenPayload } from "bookmarked-types";
+
+// Cookie configuration
+export const COOKIE_CONFIG = {
+  ACCESS_TOKEN: "accessToken",
+  REFRESH_TOKEN: "refreshToken",
+  OPTIONS: {
+    httpOnly: true,
+    secure: config.app.isProduction, // Only use secure cookies in production
+    sameSite: "lax" as const,
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+    path: "/",
+  },
+  REFRESH_OPTIONS: {
+    httpOnly: true,
+    secure: config.app.isProduction,
+    sameSite: "lax" as const,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
+    path: "/api/auth/refresh",
+  },
+} as const;
 
 /**
  * Generate JWT token for user
@@ -57,6 +78,69 @@ export const extractTokenFromHeader = (
   }
 
   return parts[1] || null;
+};
+
+/**
+ * Extract token from cookies
+ */
+export const extractTokenFromCookies = (
+  cookies: Record<string, string>
+): string | null => {
+  return cookies[COOKIE_CONFIG.ACCESS_TOKEN] || null;
+};
+
+/**
+ * Extract token from request (tries cookies first, then Authorization header)
+ */
+export const extractTokenFromRequest = (req: Request): string | null => {
+  // Try cookies first (preferred method)
+  const tokenFromCookie = extractTokenFromCookies(req.cookies || {});
+  if (tokenFromCookie) {
+    return tokenFromCookie;
+  }
+
+  // Fallback to Authorization header for backward compatibility
+  return extractTokenFromHeader(req.headers.authorization);
+};
+
+/**
+ * Set authentication cookies in response
+ */
+export const setAuthCookies = (
+  res: Response,
+  accessToken: string,
+  refreshToken?: string
+): void => {
+  // Set access token cookie
+  res.cookie(COOKIE_CONFIG.ACCESS_TOKEN, accessToken, COOKIE_CONFIG.OPTIONS);
+
+  // Set refresh token cookie if provided
+  if (refreshToken) {
+    res.cookie(
+      COOKIE_CONFIG.REFRESH_TOKEN,
+      refreshToken,
+      COOKIE_CONFIG.REFRESH_OPTIONS
+    );
+  }
+};
+
+/**
+ * Clear authentication cookies
+ */
+export const clearAuthCookies = (res: Response): void => {
+  res.clearCookie(COOKIE_CONFIG.ACCESS_TOKEN, {
+    path: COOKIE_CONFIG.OPTIONS.path,
+    httpOnly: true,
+    secure: config.app.isProduction,
+    sameSite: "lax",
+  });
+
+  res.clearCookie(COOKIE_CONFIG.REFRESH_TOKEN, {
+    path: COOKIE_CONFIG.REFRESH_OPTIONS.path,
+    httpOnly: true,
+    secure: config.app.isProduction,
+    sameSite: "lax",
+  });
 };
 
 /**

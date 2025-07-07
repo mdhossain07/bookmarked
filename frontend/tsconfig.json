@@ -14,7 +14,11 @@
     "rootDir": ".",
     "outDir": "./dist",
     "composite": true,
-    "incremental": true
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*", "vite.config.ts"],
   "exclude": ["node_modules", "dist"],

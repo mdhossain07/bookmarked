@@ -2,12 +2,18 @@ import { z } from "zod";
 import type { UserDocument } from "../database/user";
 
 // Zod validation schemas
-export const RegisterSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  firstName: z.string().min(1, "First name is required").max(50),
-  lastName: z.string().min(1, "Last name is required").max(50),
-});
+export const RegisterSchema = z
+  .object({
+    email: z.string().email("Invalid email format"),
+    firstName: z.string().min(1, "First name is required").max(50),
+    lastName: z.string().min(1, "Last name is required").max(50),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
 export const LoginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -57,8 +63,21 @@ export interface AuthResponse {
   };
 }
 
+// New response type for HTTP-only cookie authentication
+export interface CookieAuthResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: UserDocument;
+  };
+}
+
 export interface LoginResponse extends AuthResponse {}
 export interface RegisterResponse extends AuthResponse {}
+
+// Cookie-based authentication responses
+export interface CookieLoginResponse extends CookieAuthResponse {}
+export interface CookieRegisterResponse extends CookieAuthResponse {}
 
 export interface ProfileResponse {
   success: boolean;

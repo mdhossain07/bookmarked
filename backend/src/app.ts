@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import { config } from "./config/environment";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 import authRoutes from "./routes/auth.routes";
@@ -26,10 +27,12 @@ app.use(cors(config.cors));
 // Rate limiting
 const limiter = rateLimit(config.rateLimit);
 app.use("/api/", limiter);
-
 // Body parsing middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Cookie parsing middleware
+app.use(cookieParser());
 
 // Compression middleware
 app.use(compression() as any);

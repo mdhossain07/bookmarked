@@ -214,12 +214,13 @@ Positioned as a minimalist alternative to complex platforms like Goodreads or IM
 
 ### Security Requirements
 
-- **Authentication**: JWT tokens with 24-hour expiration
+- **Authentication**: JWT tokens with 24-hour expiration stored in HTTP-only cookies
 - **Authorization**: Role-based access control (user/admin)
 - **Data Sanitization**: All user inputs validated with Zod schemas
 - **HTTPS**: All communications encrypted in production
 - **Password Security**: Bcrypt hashing with salt rounds ≥ 12
 - **CORS**: Properly configured cross-origin resource sharing
+- **Session Management**: Automatic token refresh with secure cookie handling
 
 ### Accessibility Requirements
 
@@ -388,7 +389,7 @@ const sampleMovie: Media = {
 ### Base Configuration
 
 - **Base URL**: `https://api.bookmarked.app/v1`
-- **Authentication**: Bearer JWT tokens in Authorization header
+- **Authentication**: JWT tokens in HTTP-only cookies with automatic refresh
 - **Content-Type**: `application/json`
 - **Validation**: Zod schemas for all request/response validation
 - **Type Safety**: Full TypeScript integration with shared types
@@ -682,7 +683,9 @@ All endpoints return consistent error responses with Zod validation details:
 
 ### Design System
 
-#### Color Palette
+#### Color Palette & Theme System
+
+**Light Theme**:
 
 - **Primary**: #2563EB (Blue 600) - Main brand color for CTAs and highlights
 - **Primary Light**: #DBEAFE (Blue 100) - Backgrounds and subtle accents
@@ -695,6 +698,27 @@ All endpoints return consistent error responses with Zod validation details:
 - **Text Primary**: #0F172A (Slate 900) - Primary text
 - **Text Secondary**: #64748B (Slate 500) - Secondary text
 - **Border**: #E2E8F0 (Slate 200) - Borders and dividers
+
+**Dark Theme**:
+
+- **Primary**: #3B82F6 (Blue 500) - Main brand color for CTAs and highlights
+- **Primary Light**: #1E3A8A (Blue 900) - Backgrounds and subtle accents
+- **Secondary**: #94A3B8 (Slate 400) - Secondary text and icons
+- **Success**: #10B981 (Emerald 500) - Success states and completed items
+- **Warning**: #F59E0B (Amber 500) - Warning states and in-progress items
+- **Error**: #EF4444 (Red 500) - Error states and destructive actions
+- **Background**: #0F172A (Slate 900) - Main background
+- **Surface**: #1E293B (Slate 800) - Card backgrounds and sections
+- **Text Primary**: #F8FAFC (Slate 50) - Primary text
+- **Text Secondary**: #94A3B8 (Slate 400) - Secondary text
+- **Border**: #334155 (Slate 700) - Borders and dividers
+
+**Theme Features**:
+
+- **Theme Persistence**: User preference stored in localStorage
+- **System Theme Detection**: Automatic detection of OS theme preference
+- **Theme Toggle**: Accessible toggle button with three states (light/dark/system)
+- **Smooth Transitions**: CSS transitions for theme switching
 
 #### Typography
 
@@ -729,6 +753,22 @@ All endpoints return consistent error responses with Zod validation details:
 - **Mobile**: Collapsible hamburger menu with full-screen overlay
 - **Search Bar**: Expandable search with real-time suggestions
 - **User Menu**: Dropdown with profile, settings, and logout options
+- **Theme Toggle**: Accessible button with three states (light/dark/system) and visual indicators
+
+##### Authentication Components
+
+- **Login Form**: Email/password fields with validation and Google OAuth button
+- **Register Form**: Extended form with first name, last name, email, and password
+- **Google OAuth Button**: Branded "Continue with Google" button following Google's design guidelines
+- **Toast Notifications**: Non-intrusive success/error messages for authentication actions
+
+##### Toast Notification System
+
+- **Position**: Top-right corner of viewport
+- **Duration**: 4 seconds for success, 6 seconds for errors
+- **Animation**: Slide-in from right with fade-out
+- **Accessibility**: Screen reader announcements and keyboard dismissible
+- **Types**: Success (green), Error (red), Warning (amber), Info (blue)
 
 ### Responsive Breakpoints
 
@@ -1098,7 +1138,9 @@ export type LoginRequest = z.infer<typeof LoginSchema>;
     "morgan": "^1.10.0",
     "dotenv": "^16.3.1",
     "zod": "^3.22.4",
-    "nodemailer": "^6.9.7"
+    "nodemailer": "^6.9.7",
+    "better-auth": "^0.8.0",
+    "better-auth/adapters/mongoose": "^0.8.0"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
@@ -1123,7 +1165,8 @@ export type LoginRequest = z.infer<typeof LoginSchema>;
 - **TypeScript**: Full type safety with strict mode enabled
 - **Zod Validation**: Schema validation for all API endpoints
 - **Mongoose**: MongoDB ODM with TypeScript support
-- **JWT Authentication**: Secure token-based authentication
+- **JWT Authentication**: Secure token-based authentication with HTTP-only cookies
+- **Better Auth**: OAuth 2.0 integration with Google provider
 - **Express Middleware**: CORS, Helmet, Morgan for security and logging
 - **Environment Configuration**: Dotenv for environment variables
 
@@ -1140,11 +1183,17 @@ export type LoginRequest = z.infer<typeof LoginSchema>;
     "react-router-dom": "^6.20.1",
     "react-hook-form": "^7.48.2",
     "@hookform/resolvers": "^3.3.2",
-    "react-query": "^3.39.3",
+    "@tanstack/react-query": "^5.81.5",
+    "@tanstack/react-query-devtools": "^5.81.5",
     "axios": "^1.6.2",
     "zod": "^3.22.4",
     "clsx": "^2.0.0",
-    "lucide-react": "^0.294.0"
+    "lucide-react": "^0.525.0",
+    "@radix-ui/react-toast": "^1.2.14",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-icons": "^1.3.2",
+    "better-auth/react": "^0.8.0"
   },
   "devDependencies": {
     "typescript": "^5.3.3",
@@ -1169,11 +1218,14 @@ export type LoginRequest = z.infer<typeof LoginSchema>;
 - **React 18**: Latest React with concurrent features
 - **TypeScript**: Full type safety throughout the application
 - **Vite**: Fast build tool with HMR for development
-- **TailwindCSS**: Utility-first CSS framework
+- **TailwindCSS**: Utility-first CSS framework with dark mode support
+- **Shadcn UI**: Modern component library built on Radix UI primitives
 - **React Hook Form**: Form handling with Zod validation
-- **React Query**: Server state management and caching
+- **TanStack Query**: Server state management and caching
 - **Axios**: HTTP client with TypeScript support
 - **React Router**: Client-side routing
+- **Toast Notifications**: Accessible toast system using Radix UI
+- **Theme System**: Dark/light/system theme switching with persistence
 
 ### Development Environment Setup
 
