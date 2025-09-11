@@ -9,6 +9,8 @@ import { config } from "./config/environment";
 import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
+import movieRoutes from "./routes/movie.routes";
+import bookRoutes from "./routes/book.routes";
 import { ApiResponse, HttpStatus } from "bookmarked-types";
 
 // Create Express application
@@ -47,6 +49,8 @@ if (config.app.isDevelopment) {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/movies", movieRoutes);
+app.use("/api/books", bookRoutes);
 
 // Welcome endpoint
 app.get("/", (_req, res) => {

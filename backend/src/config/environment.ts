@@ -80,6 +80,18 @@ export const config = {
   cors: {
     origin: env.ALLOWED_ORIGINS.split(",").map((origin) => origin.trim()),
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"] as string[],
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+      "Cache-Control",
+      "Pragma",
+    ] as string[],
+    exposedHeaders: ["Set-Cookie"] as string[],
+    optionsSuccessStatus: 200, // Some legacy browsers choke on 204
   },
 
   rateLimit: {
