@@ -37,6 +37,9 @@ const envSchema = z.object({
   SMTP_PORT: z.string().transform(Number).optional(),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
+
+  // OpenAI
+  OPENAI_API_KEY: z.string().optional(),
 });
 
 // Validate environment variables
@@ -106,5 +109,9 @@ export const config = {
     user: env.SMTP_USER,
     pass: env.SMTP_PASS,
     enabled: !!(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS),
+  },
+
+  openAI: {
+    apiKey: env.OPENAI_API_KEY,
   },
 } as const;

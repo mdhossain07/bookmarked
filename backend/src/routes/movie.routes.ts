@@ -6,6 +6,7 @@ import {
   MovieQuerySchema,
   MovieIdParamSchema,
   BulkUpdateMovieStatusSchema,
+  BatchAddMoviesSchema,
   MovieIndustrySchema,
   MovieStatusSchema,
 } from "bookmarked-types";
@@ -22,6 +23,8 @@ import {
   getMoviesByStatus,
   getMoviesByIndustry,
   searchMovies,
+  batchAddMovies,
+  checkDuplicateMovies,
 } from "../controllers/movie.controller";
 
 const router = Router();
@@ -66,6 +69,28 @@ router.post(
   "/bulk-update-status",
   validate({ body: BulkUpdateMovieStatusSchema }),
   bulkUpdateMovieStatus
+);
+
+/**
+ * @route   POST /api/movies/batch-add
+ * @desc    Batch add movies
+ * @access  Private
+ */
+router.post(
+  "/batch-add",
+  validate({ body: BatchAddMoviesSchema }),
+  batchAddMovies
+);
+
+/**
+ * @route   POST /api/movies/check-duplicates
+ * @desc    Check for duplicate movies
+ * @access  Private
+ */
+router.post(
+  "/check-duplicates",
+  validate({ body: BatchAddMoviesSchema }),
+  checkDuplicateMovies
 );
 
 /**

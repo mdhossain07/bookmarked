@@ -4,6 +4,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard.tsx";
 import Movies from "./pages/Movies";
 import Books from "./pages/Books";
+import LatestUpdates from "./pages/LatestUpdates";
 import ProtectedRoute, { PublicOnlyRoute } from "./components/ProtectedRoute";
 import { Toaster } from "./components/ui/toaster";
 
@@ -49,6 +50,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Books />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/latest-updates"
+          element={
+            <ProtectedRoute>
+              <LatestUpdates />
             </ProtectedRoute>
           }
         />

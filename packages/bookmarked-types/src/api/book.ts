@@ -104,6 +104,14 @@ export const BulkUpdateBookStatusSchema = z.object({
   status: BookStatusSchema,
 });
 
+// Batch add books schema
+export const BatchAddBooksSchema = z.object({
+  books: z
+    .array(CreateBookSchema)
+    .min(1, "At least one book is required")
+    .max(50, "Cannot add more than 50 books at once"),
+});
+
 // Export request/response types
 export type CreateBookRequest = z.infer<typeof CreateBookSchema>;
 export type UpdateBookRequest = z.infer<typeof UpdateBookSchema>;
@@ -112,6 +120,7 @@ export type BookIdParam = z.infer<typeof BookIdParamSchema>;
 export type BulkUpdateBookStatusRequest = z.infer<
   typeof BulkUpdateBookStatusSchema
 >;
+export type BatchAddBooksRequest = z.infer<typeof BatchAddBooksSchema>;
 
 // API Response interfaces
 export interface BookResponse {
@@ -157,6 +166,19 @@ export interface BulkUpdateBookResponse {
     updated: number;
     failed: number;
     errors?: string[];
+  };
+  timestamp: string;
+}
+
+export interface BatchAddBooksResponse {
+  success: boolean;
+  message: string;
+  data: {
+    added: number;
+    failed: number;
+    duplicates: number;
+    errors?: string[];
+    books?: BookDocument[];
   };
   timestamp: string;
 }

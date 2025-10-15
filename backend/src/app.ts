@@ -11,6 +11,7 @@ import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
 import movieRoutes from "./routes/movie.routes";
 import bookRoutes from "./routes/book.routes";
+import openAIRoutes from "./routes/openAI.route";
 import { ApiResponse, HttpStatus } from "bookmarked-types";
 
 // Create Express application
@@ -51,6 +52,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/movies", movieRoutes);
 app.use("/api/books", bookRoutes);
+app.use("/api/openai", openAIRoutes);
 
 // Welcome endpoint
 app.get("/", (_req, res) => {

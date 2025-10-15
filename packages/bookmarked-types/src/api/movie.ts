@@ -126,6 +126,14 @@ export const BulkUpdateMovieStatusSchema = z.object({
     .transform((val) => (val ? new Date(val) : undefined)),
 });
 
+// Batch add movies schema
+export const BatchAddMoviesSchema = z.object({
+  movies: z
+    .array(CreateMovieSchema)
+    .min(1, "At least one movie is required")
+    .max(50, "Cannot add more than 50 movies at once"),
+});
+
 // Export request/response types
 export type CreateMovieRequest = z.infer<typeof CreateMovieSchema>;
 export type UpdateMovieRequest = z.infer<typeof UpdateMovieSchema>;
@@ -134,6 +142,7 @@ export type MovieIdParam = z.infer<typeof MovieIdParamSchema>;
 export type BulkUpdateMovieStatusRequest = z.infer<
   typeof BulkUpdateMovieStatusSchema
 >;
+export type BatchAddMoviesRequest = z.infer<typeof BatchAddMoviesSchema>;
 
 // API Response interfaces
 export interface MovieResponse {
@@ -179,6 +188,19 @@ export interface BulkUpdateResponse {
     updated: number;
     failed: number;
     errors?: string[];
+  };
+  timestamp: string;
+}
+
+export interface BatchAddMoviesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    added: number;
+    failed: number;
+    duplicates: number;
+    errors?: string[];
+    movies?: MovieDocument[];
   };
   timestamp: string;
 }

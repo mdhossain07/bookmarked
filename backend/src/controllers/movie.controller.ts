@@ -5,6 +5,7 @@ import {
   MovieQueryRequest,
   MovieIdParam,
   BulkUpdateMovieStatusRequest,
+  BatchAddMoviesRequest,
   ApiResponse,
   HttpStatus,
   ErrorCodes,
@@ -70,29 +71,31 @@ export const getMovies = asyncHandler(async (req: Request, res: Response) => {
 /**
  * Get a specific movie by ID
  */
-export const getMovieById = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new ApiError(
-      "User not authenticated",
-      HttpStatus.UNAUTHORIZED,
-      ErrorCodes.AUTHENTICATION_ERROR
-    );
+export const getMovieById = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
+
+    const { id }: MovieIdParam = req.params as any;
+    const movie = await movieService.getMovieById(req.user.userId, id);
+
+    const response: ApiResponse = {
+      success: true,
+      message: "Movie retrieved successfully",
+      data: {
+        movie,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.OK).json(response);
   }
-
-  const { id }: MovieIdParam = req.params as any;
-  const movie = await movieService.getMovieById(req.user.userId, id);
-
-  const response: ApiResponse = {
-    success: true,
-    message: "Movie retrieved successfully",
-    data: {
-      movie,
-    },
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(HttpStatus.OK).json(response);
-});
+);
 
 /**
  * Update a movie
@@ -149,28 +152,30 @@ export const deleteMovie = asyncHandler(async (req: Request, res: Response) => {
 /**
  * Get movie statistics for the authenticated user
  */
-export const getMovieStats = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new ApiError(
-      "User not authenticated",
-      HttpStatus.UNAUTHORIZED,
-      ErrorCodes.AUTHENTICATION_ERROR
-    );
+export const getMovieStats = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
+
+    const stats = await movieService.getMovieStats(req.user.userId);
+
+    const response: ApiResponse = {
+      success: true,
+      message: "Movie statistics retrieved successfully",
+      data: {
+        stats,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.OK).json(response);
   }
-
-  const stats = await movieService.getMovieStats(req.user.userId);
-
-  const response: ApiResponse = {
-    success: true,
-    message: "Movie statistics retrieved successfully",
-    data: {
-      stats,
-    },
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(HttpStatus.OK).json(response);
-});
+);
 
 /**
  * Bulk update movie status
@@ -268,36 +273,98 @@ export const getMoviesByIndustry = asyncHandler(
 /**
  * Search movies
  */
-export const searchMovies = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new ApiError(
-      "User not authenticated",
-      HttpStatus.UNAUTHORIZED,
-      ErrorCodes.AUTHENTICATION_ERROR
-    );
+export const searchMovies = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
+
+    const { q: search } = req.query;
+    if (!search || typeof search !== "string") {
+      throw new ApiError(
+        "Search query is required",
+        HttpStatus.BAD_REQUEST,
+        ErrorCodes.VALIDATION_ERROR
+      );
+    }
+
+    const query: MovieQueryRequest = { ...req.query, search } as any;
+    const result = await movieService.getMovies(req.user.userId, query);
+
+    const response: ApiResponse = {
+      success: true,
+      message: `Search results for '${search}' retrieved successfully`,
+      data: {
+        movies: result.movies,
+        pagination: result.pagination,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.OK).json(response);
   }
+);
 
-  const { q: search } = req.query;
-  if (!search || typeof search !== 'string') {
-    throw new ApiError(
-      "Search query is required",
-      HttpStatus.BAD_REQUEST,
-      ErrorCodes.VALIDATION_ERROR
-    );
+/**
+ * Batch add movies
+ */
+export const batchAddMovies = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
+
+    const { movies }: BatchAddMoviesRequest = req.body;
+    const result = await movieService.batchAddMovies(req.user.userId, movies);
+
+    const response: ApiResponse = {
+      success: true,
+      message: `Batch add completed. ${result.added} movies added, ${result.duplicates} duplicates skipped, ${result.failed} failed.`,
+      data: result,
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.CREATED).json(response);
   }
+);
 
-  const query: MovieQueryRequest = { ...req.query, search } as any;
-  const result = await movieService.getMovies(req.user.userId, query);
+/**
+ * Check for duplicate movies
+ */
+export const checkDuplicateMovies = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
 
-  const response: ApiResponse = {
-    success: true,
-    message: `Search results for '${search}' retrieved successfully`,
-    data: {
-      movies: result.movies,
-      pagination: result.pagination,
-    },
-    timestamp: new Date().toISOString(),
-  };
+    const { movies }: BatchAddMoviesRequest = req.body;
+    const duplicates = await movieService.checkDuplicateMovies(
+      req.user.userId,
+      movies
+    );
 
-  res.status(HttpStatus.OK).json(response);
-});
+    const response: ApiResponse = {
+      success: true,
+      message: "Duplicate check completed",
+      data: {
+        duplicates,
+        count: duplicates.length,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.OK).json(response);
+  }
+);

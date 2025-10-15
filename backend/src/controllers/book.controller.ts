@@ -5,6 +5,7 @@ import {
   BookQueryRequest,
   BookIdParam,
   BulkUpdateBookStatusRequest,
+  BatchAddBooksRequest,
   ApiResponse,
   HttpStatus,
   ErrorCodes,
@@ -150,28 +151,30 @@ export const deleteBook = asyncHandler(async (req: Request, res: Response) => {
 /**
  * Get book statistics
  */
-export const getBookStats = asyncHandler(async (req: Request, res: Response) => {
-  if (!req.user) {
-    throw new ApiError(
-      "User not authenticated",
-      HttpStatus.UNAUTHORIZED,
-      ErrorCodes.AUTHENTICATION_ERROR
-    );
+export const getBookStats = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
+
+    const stats = await bookService.getBookStats(req.user.userId);
+
+    const response: ApiResponse = {
+      success: true,
+      message: "Book statistics retrieved successfully",
+      data: {
+        stats,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.OK).json(response);
   }
-
-  const stats = await bookService.getBookStats(req.user.userId);
-
-  const response: ApiResponse = {
-    success: true,
-    message: "Book statistics retrieved successfully",
-    data: {
-      stats,
-    },
-    timestamp: new Date().toISOString(),
-  };
-
-  res.status(HttpStatus.OK).json(response);
-});
+);
 
 /**
  * Bulk update book status
@@ -262,3 +265,63 @@ export const searchBooks = asyncHandler(async (req: Request, res: Response) => {
 
   res.status(HttpStatus.OK).json(response);
 });
+
+/**
+ * Batch add books
+ */
+export const batchAddBooks = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
+
+    const { books }: BatchAddBooksRequest = req.body;
+    const result = await bookService.batchAddBooks(req.user.userId, books);
+
+    const response: ApiResponse = {
+      success: true,
+      message: `Batch add completed. ${result.added} books added, ${result.duplicates} duplicates skipped, ${result.failed} failed.`,
+      data: result,
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.CREATED).json(response);
+  }
+);
+
+/**
+ * Check for duplicate books
+ */
+export const checkDuplicateBooks = asyncHandler(
+  async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new ApiError(
+        "User not authenticated",
+        HttpStatus.UNAUTHORIZED,
+        ErrorCodes.AUTHENTICATION_ERROR
+      );
+    }
+
+    const { books }: BatchAddBooksRequest = req.body;
+    const duplicates = await bookService.checkDuplicateBooks(
+      req.user.userId,
+      books
+    );
+
+    const response: ApiResponse = {
+      success: true,
+      message: "Duplicate check completed",
+      data: {
+        duplicates,
+        count: duplicates.length,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(HttpStatus.OK).json(response);
+  }
+);

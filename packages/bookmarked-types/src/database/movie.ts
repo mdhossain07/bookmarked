@@ -24,9 +24,9 @@ export interface MovieDocument extends Movie {
 // Movie filters for search and filtering operations
 export interface MovieFilters {
   userId?: string;
-  industry?: Movie['industry'] | Movie['industry'][];
+  industry?: Movie["industry"] | Movie["industry"][];
   genres?: string | string[];
-  status?: Movie['status'] | Movie['status'][];
+  status?: Movie["status"] | Movie["status"][];
   rating?: {
     min?: number;
     max?: number;
@@ -49,13 +49,13 @@ export interface MovieStats {
   byStatus: {
     watched: number;
     watching: number;
-    'to watch': number;
+    "to watch": number;
   };
   byIndustry: {
     Hollywood: number;
     Bollywood: number;
     Bangla: number;
-    'South Indian': number;
+    "South Indian": number;
     Foreign: number;
   };
   byGenre: Record<string, number>;
@@ -65,15 +65,15 @@ export interface MovieStats {
 }
 
 // Movie sort options
-export type MovieSortField = 
-  | 'title'
-  | 'director'
-  | 'rating'
-  | 'completedOn'
-  | 'createdAt'
-  | 'updatedAt';
+export type MovieSortField =
+  | "title"
+  | "director"
+  | "rating"
+  | "completedOn"
+  | "createdAt"
+  | "updatedAt";
 
-export type MovieSortOrder = 'asc' | 'desc';
+export type MovieSortOrder = "asc" | "desc";
 
 export interface MovieSort {
   field: MovieSortField;

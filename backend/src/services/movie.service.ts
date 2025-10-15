@@ -401,6 +401,137 @@ export class MovieService {
   }
 
   /**
+   * Batch add movies with duplicate detection
+   */
+  async batchAddMovies(
+    userId: string,
+    movies: CreateMovieRequest[]
+  ): Promise<{
+    added: number;
+    failed: number;
+    duplicates: number;
+    errors: string[];
+    movies: MovieDocument[];
+  }> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new ApiError(
+        "Invalid user ID",
+        HttpStatus.BAD_REQUEST,
+        ErrorCodes.VALIDATION_ERROR
+      );
+    }
+
+    const results = {
+      added: 0,
+      failed: 0,
+      duplicates: 0,
+      errors: [] as string[],
+      movies: [] as MovieDocument[],
+    };
+
+    for (const movieData of movies) {
+      try {
+        // Check for duplicate
+        const existingMovie = await MovieModel.findOne({
+          userId,
+          title: {
+            $regex: new RegExp(
+              `^${movieData.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+              "i"
+            ),
+          },
+          ...(movieData.director && {
+            director: {
+              $regex: new RegExp(
+                `^${movieData.director.replace(
+                  /[.*+?^${}()|[\]\\]/g,
+                  "\\$&"
+                )}$`,
+                "i"
+              ),
+            },
+          }),
+        });
+
+        if (existingMovie) {
+          results.duplicates++;
+          results.errors.push(
+            `Duplicate movie: "${movieData.title}" by ${
+              movieData.director || "Unknown Director"
+            }`
+          );
+          continue;
+        }
+
+        // Create new movie
+        const movie = new MovieModel({
+          userId,
+          ...movieData,
+        });
+
+        await movie.save();
+        results.movies.push(movie.toSafeObject());
+        results.added++;
+      } catch (error) {
+        results.failed++;
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        results.errors.push(
+          `Failed to add "${movieData.title}": ${errorMessage}`
+        );
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Check for duplicate movies
+   */
+  async checkDuplicateMovies(
+    userId: string,
+    movies: CreateMovieRequest[]
+  ): Promise<string[]> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new ApiError(
+        "Invalid user ID",
+        HttpStatus.BAD_REQUEST,
+        ErrorCodes.VALIDATION_ERROR
+      );
+    }
+
+    const duplicates: string[] = [];
+
+    for (const movieData of movies) {
+      const existingMovie = await MovieModel.findOne({
+        userId,
+        title: {
+          $regex: new RegExp(
+            `^${movieData.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i"
+          ),
+        },
+        ...(movieData.director && {
+          director: {
+            $regex: new RegExp(
+              `^${movieData.director.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+              "i"
+            ),
+          },
+        }),
+      });
+
+      if (existingMovie) {
+        duplicates.push(
+          `"${movieData.title}" by ${movieData.director || "Unknown Director"}`
+        );
+      }
+    }
+
+    return duplicates;
+  }
+
+  /**
    * Get genre statistics (private helper)
    */
   private async getGenreStats(userId: string): Promise<Record<string, number>> {

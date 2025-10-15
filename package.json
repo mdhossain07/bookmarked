@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "concurrently \"yarn workspace bookmarked-backend dev\" \"yarn workspace bookmarked-frontend dev\"",
     "build": "yarn build:types && yarn workspace bookmarked-backend build && yarn workspace bookmarked-frontend build",
-    "build:types": "cd packages/bookmarked-types && rm -rf dist tsconfig.tsbuildinfo && yarn build && cd ../../ && yarn install",
+    "build:types": "yarn workspace bookmarked-types build",
     "start": "yarn workspace bookmarked-backend start",
     "type-check": "yarn workspaces run type-check",
     "lint": "yarn workspaces run lint",

@@ -328,6 +328,134 @@ export class BookService {
   }
 
   /**
+   * Batch add books with duplicate detection
+   */
+  async batchAddBooks(
+    userId: string,
+    books: CreateBookRequest[]
+  ): Promise<{
+    added: number;
+    failed: number;
+    duplicates: number;
+    errors: string[];
+    books: BookDocument[];
+  }> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new ApiError(
+        "Invalid user ID",
+        HttpStatus.BAD_REQUEST,
+        ErrorCodes.VALIDATION_ERROR
+      );
+    }
+
+    const results = {
+      added: 0,
+      failed: 0,
+      duplicates: 0,
+      errors: [] as string[],
+      books: [] as BookDocument[],
+    };
+
+    for (const bookData of books) {
+      try {
+        // Check for duplicate
+        const existingBook = await BookModel.findOne({
+          userId,
+          title: {
+            $regex: new RegExp(
+              `^${bookData.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+              "i"
+            ),
+          },
+          ...(bookData.author && {
+            author: {
+              $regex: new RegExp(
+                `^${bookData.author.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+                "i"
+              ),
+            },
+          }),
+        });
+
+        if (existingBook) {
+          results.duplicates++;
+          results.errors.push(
+            `Duplicate book: "${bookData.title}" by ${
+              bookData.author || "Unknown Author"
+            }`
+          );
+          continue;
+        }
+
+        // Create new book
+        const book = new BookModel({
+          userId,
+          ...bookData,
+        });
+
+        await book.save();
+        results.books.push(book.toSafeObject());
+        results.added++;
+      } catch (error) {
+        results.failed++;
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        results.errors.push(
+          `Failed to add "${bookData.title}": ${errorMessage}`
+        );
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Check for duplicate books
+   */
+  async checkDuplicateBooks(
+    userId: string,
+    books: CreateBookRequest[]
+  ): Promise<string[]> {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new ApiError(
+        "Invalid user ID",
+        HttpStatus.BAD_REQUEST,
+        ErrorCodes.VALIDATION_ERROR
+      );
+    }
+
+    const duplicates: string[] = [];
+
+    for (const bookData of books) {
+      const existingBook = await BookModel.findOne({
+        userId,
+        title: {
+          $regex: new RegExp(
+            `^${bookData.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i"
+          ),
+        },
+        ...(bookData.author && {
+          author: {
+            $regex: new RegExp(
+              `^${bookData.author.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+              "i"
+            ),
+          },
+        }),
+      });
+
+      if (existingBook) {
+        duplicates.push(
+          `"${bookData.title}" by ${bookData.author || "Unknown Author"}`
+        );
+      }
+    }
+
+    return duplicates;
+  }
+
+  /**
    * Get genre statistics for a user
    */
   private async getGenreStats(userId: string): Promise<Record<string, number>> {

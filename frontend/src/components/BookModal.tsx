@@ -1,41 +1,41 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { X, Plus, BookOpen } from 'lucide-react';
-import { useMedia } from '@/contexts/MediaContext';
-import { toast } from '@/hooks/use-toast';
-import type { Book } from 'bookmarked-types';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus, BookOpen } from "lucide-react";
+import { useMedia } from "@/contexts/MediaContext";
+import { toast } from "@/hooks/use-toast";
+import type { Book } from "bookmarked-types";
 
 // Form validation schema
 const bookSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  title: z.string().min(1, "Title is required").max(200, "Title too long"),
   author: z.string().optional(),
-  genres: z.array(z.string()).min(1, 'At least one genre is required'),
-  status: z.enum(['read', 'reading', 'will read']),
+  genres: z.array(z.string()).min(1, "At least one genre is required"),
+  status: z.enum(["read", "reading", "will read"]),
   rating: z.number().min(1).max(10).optional(),
-  review: z.string().max(2000, 'Review too long').optional(),
+  review: z.string().max(2000, "Review too long").optional(),
   completedOn: z.string().optional(),
-  coverUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  coverUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
 });
 
 type BookFormData = z.infer<typeof bookSchema>;
@@ -46,10 +46,14 @@ interface BookModalProps {
   trigger?: React.ReactNode;
 }
 
-export default function BookModal({ book, isEdit = false, trigger }: BookModalProps) {
+export default function BookModal({
+  book,
+  isEdit = false,
+  trigger,
+}: BookModalProps) {
   const [open, setOpen] = useState(false);
   const [genres, setGenres] = useState<string[]>(book?.genres || []);
-  const [newGenre, setNewGenre] = useState('');
+  const [newGenre, setNewGenre] = useState("");
   const { addBook, updateBook } = useMedia();
 
   const {
@@ -62,20 +66,22 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
   } = useForm<BookFormData>({
     resolver: zodResolver(bookSchema),
     defaultValues: {
-      title: book?.title || '',
-      author: book?.author || '',
+      title: book?.title || "",
+      author: book?.author || "",
       genres: book?.genres || [],
-      status: book?.status || 'will read',
+      status: book?.status || "will read",
       rating: book?.rating || undefined,
-      review: book?.review || '',
-      completedOn: book?.completedOn ? new Date(book.completedOn).toISOString().split('T')[0] : '',
-      coverUrl: book?.coverUrl || '',
+      review: book?.review || "",
+      completedOn: book?.completedOn
+        ? new Date(book.completedOn).toISOString().split("T")[0]
+        : "",
+      coverUrl: book?.coverUrl || "",
     },
   });
 
   // Update genres in form when local state changes
   useEffect(() => {
-    setValue('genres', genres);
+    setValue("genres", genres);
   }, [genres, setValue]);
 
   const onSubmit = async (data: BookFormData) => {
@@ -91,14 +97,14 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
       if (isEdit && book) {
         await updateBook(book._id, bookData);
         toast({
-          title: 'Success',
-          description: 'Book updated successfully!',
+          title: "Success",
+          description: "Book updated successfully!",
         });
       } else {
         await addBook(bookData);
         toast({
-          title: 'Success',
-          description: 'Book added successfully!',
+          title: "Success",
+          description: "Book added successfully!",
         });
       }
 
@@ -107,26 +113,30 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
       setGenres([]);
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Something went wrong',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
       });
     }
   };
 
   const addGenre = () => {
-    if (newGenre.trim() && !genres.includes(newGenre.trim()) && genres.length < 10) {
+    if (
+      newGenre.trim() &&
+      !genres.includes(newGenre.trim()) &&
+      genres.length < 10
+    ) {
       setGenres([...genres, newGenre.trim()]);
-      setNewGenre('');
+      setNewGenre("");
     }
   };
 
   const removeGenre = (genreToRemove: string) => {
-    setGenres(genres.filter(genre => genre !== genreToRemove));
+    setGenres(genres.filter((genre) => genre !== genreToRemove));
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       e.preventDefault();
       addGenre();
     }
@@ -141,13 +151,11 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
-            {isEdit ? 'Edit Book' : 'Add New Book'}
+            {isEdit ? "Edit Book" : "Add New Book"}
           </DialogTitle>
         </DialogHeader>
 
@@ -157,7 +165,7 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
             <Label htmlFor="title">Title *</Label>
             <Input
               id="title"
-              {...register('title')}
+              {...register("title")}
               placeholder="Enter book title"
               className="focus:ring-2 focus:ring-blue-500"
             />
@@ -171,7 +179,7 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
             <Label htmlFor="author">Author</Label>
             <Input
               id="author"
-              {...register('author')}
+              {...register("author")}
               placeholder="Enter author name"
               className="focus:ring-2 focus:ring-blue-500"
             />
@@ -197,7 +205,11 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
             </div>
             <div className="flex flex-wrap gap-2 mt-2">
               {genres.map((genre, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {genre}
                   <X
                     className="w-3 h-3 cursor-pointer hover:text-red-500"
@@ -216,8 +228,8 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
-                value={watch('status')}
-                onValueChange={(value) => setValue('status', value as any)}
+                value={watch("status")}
+                onValueChange={(value) => setValue("status", value as any)}
               >
                 <SelectTrigger className="focus:ring-2 focus:ring-blue-500">
                   <SelectValue placeholder="Select status" />
@@ -238,7 +250,7 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
                 min="1"
                 max="10"
                 step="0.5"
-                {...register('rating', { valueAsNumber: true })}
+                {...register("rating", { valueAsNumber: true })}
                 placeholder="Rate this book"
                 className="focus:ring-2 focus:ring-blue-500"
               />
@@ -254,7 +266,7 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
             <Input
               id="completedOn"
               type="date"
-              {...register('completedOn')}
+              {...register("completedOn")}
               className="focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -264,7 +276,7 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
             <Label htmlFor="coverUrl">Cover Image URL</Label>
             <Input
               id="coverUrl"
-              {...register('coverUrl')}
+              {...register("coverUrl")}
               placeholder="https://example.com/book-cover.jpg"
               className="focus:ring-2 focus:ring-blue-500"
             />
@@ -278,7 +290,7 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
             <Label htmlFor="review">Review</Label>
             <Textarea
               id="review"
-              {...register('review')}
+              {...register("review")}
               placeholder="Write your thoughts about this book..."
               rows={4}
               className="focus:ring-2 focus:ring-blue-500"
@@ -302,7 +314,7 @@ export default function BookModal({ book, isEdit = false, trigger }: BookModalPr
               disabled={isSubmitting}
               className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
             >
-              {isSubmitting ? 'Saving...' : isEdit ? 'Update Book' : 'Add Book'}
+              {isSubmitting ? "Saving..." : isEdit ? "Update Book" : "Add Book"}
             </Button>
           </div>
         </form>

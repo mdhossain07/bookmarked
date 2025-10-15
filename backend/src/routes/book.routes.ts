@@ -6,6 +6,7 @@ import {
   BookQuerySchema,
   BookIdParamSchema,
   BulkUpdateBookStatusSchema,
+  BatchAddBooksSchema,
   BookStatusSchema,
 } from "bookmarked-types";
 import { validate } from "../utils/validation";
@@ -20,6 +21,8 @@ import {
   bulkUpdateBookStatus,
   getBooksByStatus,
   searchBooks,
+  batchAddBooks,
+  checkDuplicateBooks,
 } from "../controllers/book.controller";
 
 const router = Router();
@@ -64,6 +67,28 @@ router.post(
   "/bulk-update-status",
   validate({ body: BulkUpdateBookStatusSchema }),
   bulkUpdateBookStatus
+);
+
+/**
+ * @route   POST /api/books/batch-add
+ * @desc    Batch add books
+ * @access  Private
+ */
+router.post(
+  "/batch-add",
+  validate({ body: BatchAddBooksSchema }),
+  batchAddBooks
+);
+
+/**
+ * @route   POST /api/books/check-duplicates
+ * @desc    Check for duplicate books
+ * @access  Private
+ */
+router.post(
+  "/check-duplicates",
+  validate({ body: BatchAddBooksSchema }),
+  checkDuplicateBooks
 );
 
 /**

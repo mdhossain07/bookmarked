@@ -13,7 +13,7 @@ import { useMedia } from "@/contexts/MediaContext";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
-  const { movies, books } = useMedia();
+  // const { movies, books } = useMedia();
 
   const firstName = user?.firstName || "User";
 
@@ -48,7 +48,7 @@ const Dashboard = () => {
             <CardDescription>Track your reading progress</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{books.length}</p>
+            {/* <p className="text-2xl font-bold">{books.length}</p> */}
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Books tracked
             </p>
@@ -61,7 +61,7 @@ const Dashboard = () => {
             <CardDescription>Keep track of what you've watched</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">{movies.length}</p>
+            {/* <p className="text-2xl font-bold">{movies.length}</p> */}
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Movies tracked
             </p>
