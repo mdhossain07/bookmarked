@@ -2610,11 +2610,6 @@ expect@^30.0.0:
     jest-mock "30.0.5"
     jest-util "30.0.5"
 
-express-rate-limit@^7.1.5:
-  version "7.5.1"
-  resolved "https://registry.npmjs.org/express-rate-limit/-/express-rate-limit-7.5.1.tgz"
-  integrity sha512-7iN8iPMDzOMHPUYllBEsQdWVB6fPDMPqwjBaFrgr4Jgr/+okjvzAy+UHlYYL/Vs0OsOrMkwS6PJDkFlJwoxUnw==
-
 express@^4.18.2:
   version "4.21.2"
   resolved "https://registry.npmjs.org/express/-/express-4.21.2.tgz"

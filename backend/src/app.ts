@@ -20,7 +20,8 @@ import { ApiResponse, HttpStatus } from "bookmarked-types";
 const app: Application = express();
 
 // Security middleware
-app.use(helmet());
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+app.use((helmet as any)());
 
 // CORS configuration
 app.use(cors(config.cors));
@@ -50,7 +51,7 @@ app.use("/api/books", bookRoutes);
 app.use("/api/openai", openAIRoutes);
 
 // Welcome endpoint
-app.get("/", (_req, res) => {
+app.get("/", (_req: express.Request, res: express.Response) => {
   const response: ApiResponse = {
     success: true,
     message: "Welcome to Bookmarked API",
