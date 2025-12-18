@@ -1,14 +1,14 @@
 import { Router } from "express";
 import { UpdateProfileSchema, ChangePasswordSchema } from "bookmarked-types";
-import { validate } from "../utils/validation";
-import { authenticate } from "../middleware/auth.middleware";
+import { validate } from "../utils/validation.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 import {
   updateProfile,
   changePassword,
   deactivateAccount,
-} from "../controllers/user.controller";
+} from "../controllers/user.controller.js";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * @route   PUT /api/users/profile

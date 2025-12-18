@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginSchema, type LoginRequest } from "bookmarked-types";
 import { useAuth } from "@/contexts/AuthContext";
 import { authToasts } from "@/lib/toast-helpers";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Book, Eye, EyeOff } from "lucide-react";
+import { LoginRequest, LoginSchema } from "bookmarked-types";
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +29,7 @@ const Login = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginRequest>({
-    resolver: zodResolver(LoginSchema),
+    // resolver: zodResolver(LoginSchema),
   });
 
   const onSubmit = async (data: LoginRequest) => {

@@ -4,6 +4,7 @@ import BookModal from "@/components/BookModal";
 import { MediaCard } from "@/components/MediaCard";
 import { useMedia } from "@/contexts/MediaContext";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -26,7 +27,18 @@ import {
   Filter,
   Calendar as CalendarIcon,
   X,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   format,
   isAfter,
@@ -46,7 +58,7 @@ import { cn } from "@/lib/utils";
 import type { Book } from "bookmarked-types";
 
 export default function Books() {
-  const { books, isLoadingBooks } = useMedia();
+  const { books, isLoadingBooks, deleteBook } = useMedia();
   console.log("books", books);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -57,6 +69,10 @@ export default function Books() {
   >();
   const [showFilters, setShowFilters] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
+  const [bookToDelete, setBookToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   // Get unique authors for filter
   const uniqueAuthors = Array.from(
@@ -66,6 +82,29 @@ export default function Books() {
         .map((book: Book) => book.author!)
     )
   ).sort();
+
+  const handleDeleteClick = (id: string, title: string) => {
+    setBookToDelete({ id, title });
+  };
+
+  const confirmDelete = async () => {
+    if (!bookToDelete) return;
+
+    try {
+      await deleteBook(bookToDelete.id);
+      toast({
+        title: "Success",
+        description: "Book deleted successfully",
+      });
+      setBookToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete book",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Filter books based on search and filters
   const filteredBooks =
@@ -396,6 +435,7 @@ export default function Books() {
                 genre={book.genres}
                 coverUrl={book.coverUrl}
                 onEdit={() => setEditingBook(book)}
+                onDelete={() => handleDeleteClick(book._id, book.title)}
               />
             ))}
           </div>
@@ -418,8 +458,38 @@ export default function Books() {
 
         {/* Edit Modal */}
         {editingBook && (
-          <BookModal book={editingBook} isEdit={true} trigger={<div />} />
+          <BookModal
+            book={editingBook}
+            isEdit={true}
+            trigger={<div />}
+            open={!!editingBook}
+            onOpenChange={(open) => !open && setEditingBook(null)}
+          />
         )}
+
+        <AlertDialog
+          open={!!bookToDelete}
+          onOpenChange={(open) => !open && setBookToDelete(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete "
+                {bookToDelete?.title}" from your collection.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );

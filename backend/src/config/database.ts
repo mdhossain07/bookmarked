@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { config } from './environment';
+import { config } from './environment.js';
 
 // MongoDB connection options
 const connectionOptions: mongoose.ConnectOptions = {

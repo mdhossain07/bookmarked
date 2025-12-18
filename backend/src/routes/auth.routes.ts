@@ -1,16 +1,16 @@
 import { Router } from "express";
 import { RegisterSchema, LoginSchema } from "bookmarked-types";
-import { validate } from "../utils/validation";
-import { authenticate } from "../middleware/auth.middleware";
+import { validate } from "../utils/validation.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 import {
   register,
   login,
   getProfile,
   logout,
   refreshToken,
-} from "../controllers/auth.controller";
+} from "../controllers/auth.controller.js";
 
-const router = Router();
+const router: Router = Router();
 
 /**
  * @route   POST /api/auth/register

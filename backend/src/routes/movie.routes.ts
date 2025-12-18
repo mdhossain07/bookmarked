@@ -10,8 +10,8 @@ import {
   MovieIndustrySchema,
   MovieStatusSchema,
 } from "bookmarked-types";
-import { validate } from "../utils/validation";
-import { authenticate } from "../middleware/auth.middleware";
+import { validate } from "../utils/validation.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 import {
   createMovie,
   getMovies,
@@ -25,9 +25,9 @@ import {
   searchMovies,
   batchAddMovies,
   checkDuplicateMovies,
-} from "../controllers/movie.controller";
+} from "../controllers/movie.controller.js";
 
-const router = Router();
+const router: Router = Router();
 
 // Apply authentication middleware to all routes
 router.use(authenticate);

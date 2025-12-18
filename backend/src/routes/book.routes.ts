@@ -9,8 +9,8 @@ import {
   BatchAddBooksSchema,
   BookStatusSchema,
 } from "bookmarked-types";
-import { validate } from "../utils/validation";
-import { authenticate } from "../middleware/auth.middleware";
+import { validate } from "../utils/validation.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 import {
   createBook,
   getBooks,
@@ -23,9 +23,9 @@ import {
   searchBooks,
   batchAddBooks,
   checkDuplicateBooks,
-} from "../controllers/book.controller";
+} from "../controllers/book.controller.js";
 
-const router = Router();
+const router: Router = Router();
 
 // Apply authentication middleware to all routes
 router.use(authenticate);

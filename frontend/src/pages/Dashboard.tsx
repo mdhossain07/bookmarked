@@ -11,11 +11,26 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMedia } from "@/contexts/MediaContext";
 
+import type { Book, Movie } from "bookmarked-types";
+
+// ...
+
 const Dashboard = () => {
-  const { user, isLoading } = useAuth();
-  // const { movies, books } = useMedia();
+  const { user, isLoading: authLoading } = useAuth();
+  const { movies, books, isLoadingMovies, isLoadingBooks } = useMedia();
 
   const firstName = user?.firstName || "User";
+  const isLoading = authLoading || isLoadingMovies || isLoadingBooks;
+
+  const booksRead =
+    books?.books?.filter((b: Book) => b.status === "read").length || 0;
+  const booksToRead =
+    books?.books?.filter((b: Book) => b.status === "will read").length || 0;
+
+  const moviesWatched =
+    movies?.movies?.filter((m: Movie) => m.status === "watched").length || 0;
+  const moviesToWatch =
+    movies?.movies?.filter((m: Movie) => m.status === "to watch").length || 0;
 
   if (isLoading) {
     return (
@@ -47,11 +62,23 @@ const Dashboard = () => {
             <CardTitle>Books</CardTitle>
             <CardDescription>Track your reading progress</CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* <p className="text-2xl font-bold">{books.length}</p> */}
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Books tracked
-            </p>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Books Read
+              </span>
+              <span className="text-2xl font-bold text-green-600">
+                {booksRead}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                To Be Read
+              </span>
+              <span className="text-2xl font-bold text-blue-600">
+                {booksToRead}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
@@ -60,11 +87,23 @@ const Dashboard = () => {
             <CardTitle>Movies</CardTitle>
             <CardDescription>Keep track of what you've watched</CardDescription>
           </CardHeader>
-          <CardContent>
-            {/* <p className="text-2xl font-bold">{movies.length}</p> */}
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Movies tracked
-            </p>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Movies Watched
+              </span>
+              <span className="text-2xl font-bold text-green-600">
+                {moviesWatched}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                To Watch
+              </span>
+              <span className="text-2xl font-bold text-blue-600">
+                {moviesToWatch}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
@@ -89,7 +128,7 @@ const Dashboard = () => {
       </div>
 
       {/* Status Cards */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+      {/* <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h3 className="font-semibold text-blue-900 mb-2">Frontend Status</h3>
           <p className="text-blue-700 text-sm">
@@ -108,10 +147,10 @@ const Dashboard = () => {
             Login and Register pages are now accessible
           </p>
         </div>
-      </div>
+      </div> */}
 
       {/* Navigation Links */}
-      <div className="mt-8 text-center">
+      {/* <div className="mt-8 text-center">
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Test the authentication flow:
         </p>
@@ -123,7 +162,7 @@ const Dashboard = () => {
             <Button variant="outline">Go to Register</Button>
           </Link>
         </div>
-      </div>
+      </div> */}
     </MainLayout>
   );
 };

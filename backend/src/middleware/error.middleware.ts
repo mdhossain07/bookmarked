@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ApiResponse, ErrorCodes, HttpStatus } from "bookmarked-types";
-import { config } from "../config/environment";
+import { config } from "../config/environment.js";
 
 /**
  * Custom error class for API errors

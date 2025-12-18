@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { UserDocument } from "../database/user";
+import type { UserDocument } from "../database/user.js";
 
 // Zod validation schemas
 export const RegisterSchema = z

@@ -50,11 +50,20 @@ export default function BookModal({
   book,
   isEdit = false,
   trigger,
-}: BookModalProps) {
-  const [open, setOpen] = useState(false);
+  open: controlledOpen,
+  onOpenChange,
+}: BookModalProps & {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? onOpenChange! : setInternalOpen;
+
   const [genres, setGenres] = useState<string[]>(book?.genres || []);
   const [newGenre, setNewGenre] = useState("");
-  const { addBook, updateBook } = useMedia();
+  const { addBook, updateBook, deleteBook } = useMedia();
 
   const {
     register,
@@ -78,6 +87,39 @@ export default function BookModal({
       coverUrl: book?.coverUrl || "",
     },
   });
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      if (book) {
+        reset({
+          title: book.title || "",
+          author: book.author || "",
+          genres: book.genres || [],
+          status: book.status || "will read",
+          rating: book.rating || undefined,
+          review: book.review || "",
+          completedOn: book.completedOn
+            ? new Date(book.completedOn).toISOString().split("T")[0]
+            : "",
+          coverUrl: book.coverUrl || "",
+        });
+        setGenres(book.genres || []);
+      } else {
+        reset({
+          title: "",
+          author: "",
+          genres: [],
+          status: "will read",
+          rating: undefined,
+          review: "",
+          completedOn: "",
+          coverUrl: "",
+        });
+        setGenres([]);
+      }
+    }
+  }, [open, book, reset]);
 
   // Update genres in form when local state changes
   useEffect(() => {
@@ -109,8 +151,10 @@ export default function BookModal({
       }
 
       setOpen(false);
-      reset();
-      setGenres([]);
+      if (!isEdit) {
+        reset();
+        setGenres([]);
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -243,12 +287,12 @@ export default function BookModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="rating">Rating (1-10)</Label>
+              <Label htmlFor="rating">Rating (1-5)</Label>
               <Input
                 id="rating"
                 type="number"
                 min="1"
-                max="10"
+                max="5"
                 step="0.5"
                 {...register("rating", { valueAsNumber: true })}
                 placeholder="Rate this book"
@@ -301,21 +345,27 @@ export default function BookModal({
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
-            >
-              {isSubmitting ? "Saving..." : isEdit ? "Update Book" : "Add Book"}
-            </Button>
+          <div className="flex justify-between gap-3 pt-4">
+            <div className="flex gap-2 ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
+              >
+                {isSubmitting
+                  ? "Saving..."
+                  : isEdit
+                  ? "Update Book"
+                  : "Add Book"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

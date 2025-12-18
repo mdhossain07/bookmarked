@@ -12,7 +12,7 @@
     "dev": "concurrently \"yarn workspace bookmarked-backend dev\" \"yarn workspace bookmarked-frontend dev\"",
     "build": "yarn build:types && yarn workspace bookmarked-backend build && yarn workspace bookmarked-frontend build",
     "build:types": "yarn workspace bookmarked-types build",
-    "start": "yarn workspace bookmarked-backend start",
+    "start": "concurrently \"yarn workspace bookmarked-backend start\" \"yarn workspace bookmarked-frontend preview\"",
     "type-check": "yarn workspaces run type-check",
     "lint": "yarn workspaces run lint",
     "clean": "yarn workspaces run clean",

@@ -5,10 +5,10 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { UserModel } from "../models/User";
-import { hashPassword, comparePassword } from "../utils/password";
-import { generateToken } from "../utils/jwt";
-import { ApiError } from "../middleware/error.middleware";
+import { UserModel } from "../models/User.js";
+import { hashPassword, comparePassword } from "../utils/password.js";
+import { generateToken } from "../utils/jwt.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 export interface AuthResult {
   user: UserDocument;

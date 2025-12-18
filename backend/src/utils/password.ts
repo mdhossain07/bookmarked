@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { config } from '../config/environment';
+import { config } from '../config/environment.js';
 
 /**
  * Hash password using bcrypt

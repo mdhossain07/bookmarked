@@ -6,10 +6,10 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { userService } from "../services/user.service";
-import { authService } from "../services/auth.service";
-import { generateToken, setAuthCookies, clearAuthCookies } from "../utils/jwt";
-import { ApiError, asyncHandler } from "../middleware/error.middleware";
+import { userService } from "../services/user.service.js";
+import { authService } from "../services/auth.service.js";
+import { generateToken, setAuthCookies, clearAuthCookies } from "../utils/jwt.js";
+import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 
 /**
  * Register a new user

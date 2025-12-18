@@ -18,7 +18,7 @@ const envSchema = z.object({
     .default("mongodb://localhost:27017/bookmarked-test"),
 
   // Authentication
-  JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters"),
+  JWT_SECRET: z.string().min(5, "JWT_SECRET must be at least 5 characters"),
   JWT_EXPIRES_IN: z.string().default("24h"),
   BCRYPT_ROUNDS: z.string().transform(Number).default("12"),
 

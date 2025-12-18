@@ -106,14 +106,14 @@ const bookSchema = new Schema<BookDoc>(
   {
     timestamps: true,
     toJSON: {
-      transform: function (_doc, ret) {
-        ret["_id"] = ret["_id"].toString();
+      transform: function (_doc, ret: any) {
+        ret._id = ret._id.toString();
         return ret;
       },
     },
     toObject: {
-      transform: function (_doc, ret) {
-        ret["_id"] = ret["_id"].toString();
+      transform: function (_doc, ret: any) {
+        ret._id = ret._id.toString();
         return ret;
       },
     },

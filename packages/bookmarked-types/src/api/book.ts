@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { BookDocument, BookStats } from "../database/book";
+import type { BookDocument, BookStats } from "../database/book.js";
 
 // Status enum schema
 export const BookStatusSchema = z.enum(["read", "reading", "will read"]);

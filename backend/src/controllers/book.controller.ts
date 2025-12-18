@@ -10,8 +10,8 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { bookService } from "../services/book.service";
-import { ApiError, asyncHandler } from "../middleware/error.middleware";
+import { bookService } from "../services/book.service.js";
+import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 
 /**
  * Create a new book

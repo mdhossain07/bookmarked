@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { CreateBookSchema } from "./book";
-import { CreateMovieSchema } from "./movie";
-import { MediaTypeSchema } from "../shared/validation";
+import { CreateBookSchema } from "./book.js";
+import { CreateMovieSchema } from "./movie.js";
+import { MediaTypeSchema } from "../shared/validation.js";
 import {
   AISourceSchema,
   MatchTypeSchema,
@@ -10,7 +10,7 @@ import {
   ResponseQualitySchema,
   ParsingConfigSchema,
   type AISource,
-} from "../shared/ai-validation";
+} from "../shared/ai-validation.js";
 
 // Confidence score schema (0-1 range)
 export const ConfidenceScoreSchema = z

@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { openaiController } from "../controllers/openAI.controller";
-import { authenticate } from "../middleware/auth.middleware";
+import { openaiController } from "../controllers/openAI.controller.js";
+import { authenticate } from "../middleware/auth.middleware.js";
 
-const router = Router();
+const router: Router = Router();
 
 // Apply authentication middleware to all routes
 router.use(authenticate);

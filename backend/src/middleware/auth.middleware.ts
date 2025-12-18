@@ -5,7 +5,7 @@ import {
   HttpStatus,
   TokenPayload,
 } from "bookmarked-types";
-import { verifyToken, extractTokenFromRequest } from "../utils/jwt";
+import { verifyToken, extractTokenFromRequest } from "../utils/jwt.js";
 
 // Extend Express Request interface to include user
 declare global {

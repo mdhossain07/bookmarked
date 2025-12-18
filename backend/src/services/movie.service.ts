@@ -9,8 +9,8 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { MovieModel } from "../models/Movie";
-import { ApiError } from "../middleware/error.middleware";
+import { MovieModel } from "../models/Movie.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 export class MovieService {
   /**

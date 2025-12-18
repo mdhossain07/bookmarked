@@ -21,6 +21,7 @@ interface MediaCardProps {
   genre?: string[] | undefined;
   coverUrl?: string | undefined;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
 const getStatusConfig = (status: string) => {
@@ -72,6 +73,7 @@ export function MediaCard({
   genre,
   coverUrl,
   onEdit,
+  onDelete,
 }: MediaCardProps) {
   const statusConfig = getStatusConfig(status);
   const StatusIcon = statusConfig.icon;
@@ -88,14 +90,6 @@ export function MediaCard({
               {creator}
             </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            className="opacity-0 group-hover:opacity-100 transition-opacity ml-2"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
         </div>
       </CardHeader>
 
@@ -134,15 +128,36 @@ export function MediaCard({
           </div>
         )}
 
+        {/* Action Buttons */}
+        <div className="flex items-center gap-4">
+          <Button
+            size="sm"
+            onClick={onEdit}
+            variant="outline"
+            className="w-full"
+          >
+            Edit
+          </Button>
+
+          <Button
+            size="sm"
+            onClick={onDelete}
+            variant="destructive"
+            className="w-full"
+          >
+            Delete
+          </Button>
+        </div>
+
         {/* Notes Preview */}
-        {notes && (
+        {/* {notes && (
           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
             {notes}
           </p>
-        )}
+        )} */}
 
         {/* Dates */}
-        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+        {/* <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             <span>Added {format(dateAdded, "MMM d, yyyy")}</span>
@@ -153,7 +168,7 @@ export function MediaCard({
               <span>Finished {format(dateFinished, "MMM d, yyyy")}</span>
             </div>
           )}
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );

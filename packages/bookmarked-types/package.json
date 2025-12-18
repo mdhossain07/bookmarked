@@ -4,18 +4,19 @@
   "description": "Shared TypeScript types and Zod schemas for Bookmarked application",
   "type": "module",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "files": [
     "dist/**/*"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "rm -f tsconfig.tsbuildinfo && rm -rf dist && NODE_OPTIONS='--max-old-space-size=4096' tsc",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
     "lint": "eslint src --ext .ts"
@@ -30,13 +31,6 @@
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0"
   },
-  "keywords": [
-    "typescript",
-    "types",
-    "zod",
-    "validation",
-    "bookmarked"
-  ],
   "author": "Your Name",
   "license": "MIT"
 }

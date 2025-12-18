@@ -1,44 +1,48 @@
-import { z } from 'zod';
-import type { Media, MediaFilters, MediaStats } from '../database/media';
+import { z } from "zod";
+import type { Media, MediaFilters, MediaStats } from "../database/media.js";
 
 // Zod validation schemas
 export const CreateMediaSchema = z.object({
-  type: z.enum(['book', 'movie']),
-  title: z.string().min(1, 'Title is required').max(200),
+  type: z.enum(["book", "movie"]),
+  title: z.string().min(1, "Title is required").max(200),
   author: z.string().max(100).optional(),
   director: z.string().max(100).optional(),
   coverUrl: z.string().url().optional(),
   genres: z.array(z.string()).default([]),
-  status: z.enum(['want', 'current', 'completed', 'abandoned']).default('want'),
+  status: z.enum(["want", "current", "completed", "abandoned"]).default("want"),
   rating: z.number().min(1).max(5).optional(),
   review: z.string().max(2000).optional(),
   dateCompleted: z.string().datetime().optional(),
   customTags: z.array(z.string()).default([]),
-  
+
   // Book-specific fields
   isbn: z.string().optional(),
   pageCount: z.number().positive().optional(),
   publisher: z.string().max(100).optional(),
   publishedDate: z.string().datetime().optional(),
-  
+
   // Movie-specific fields
   imdbId: z.string().optional(),
   runtime: z.number().positive().optional(),
-  releaseYear: z.number().min(1800).max(new Date().getFullYear() + 5).optional(),
+  releaseYear: z
+    .number()
+    .min(1800)
+    .max(new Date().getFullYear() + 5)
+    .optional(),
   cast: z.array(z.string()).optional(),
-  
+
   // Progress tracking
   currentPage: z.number().positive().optional(),
   watchedMinutes: z.number().positive().optional(),
 });
 
 export const UpdateMediaSchema = CreateMediaSchema.partial().extend({
-  _id: z.string().min(1, 'Media ID is required'),
+  _id: z.string().min(1, "Media ID is required"),
 });
 
 export const MediaFiltersSchema = z.object({
-  type: z.enum(['book', 'movie']).optional(),
-  status: z.enum(['want', 'current', 'completed', 'abandoned']).optional(),
+  type: z.enum(["book", "movie"]).optional(),
+  status: z.enum(["want", "current", "completed", "abandoned"]).optional(),
   genres: z.array(z.string()).optional(),
   rating: z.number().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
@@ -48,8 +52,10 @@ export const MediaFiltersSchema = z.object({
   year: z.number().optional(),
   page: z.number().positive().default(1),
   limit: z.number().min(1).max(100).default(20),
-  sortBy: z.enum(['title', 'createdAt', 'updatedAt', 'rating', 'dateCompleted']).default('updatedAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortBy: z
+    .enum(["title", "createdAt", "updatedAt", "rating", "dateCompleted"])
+    .default("updatedAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
 // Request/Response types
@@ -88,8 +94,8 @@ export interface MediaStatsResponse {
   data: {
     stats: MediaStats;
     breakdown: {
-      byType: Record<'book' | 'movie', MediaStats>;
-      byStatus: Record<Media['status'], number>;
+      byType: Record<"book" | "movie", MediaStats>;
+      byStatus: Record<Media["status"], number>;
       byGenre: Record<string, number>;
       byRating: Record<string, number>;
       recentActivity: Media[];

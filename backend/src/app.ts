@@ -1,21 +1,21 @@
-import express from "express";
+import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
-import { config } from "./config/environment";
-import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
-import authRoutes from "./routes/auth.routes";
-import userRoutes from "./routes/user.routes";
-import movieRoutes from "./routes/movie.routes";
-import bookRoutes from "./routes/book.routes";
-import openAIRoutes from "./routes/openAI.route";
+import { config } from "./config/environment.js";
+import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
+import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import movieRoutes from "./routes/movie.routes.js";
+import bookRoutes from "./routes/book.routes.js";
+import openAIRoutes from "./routes/openAI.route.js";
 import { ApiResponse, HttpStatus } from "bookmarked-types";
 
 // Create Express application
-const app = express();
+const app: Application = express();
 
 // Security middleware
 app.use(

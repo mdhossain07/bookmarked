@@ -1,3 +1,5 @@
+import { toast } from "@/hooks/use-toast";
+
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import MovieModal from "@/components/MovieModal";
@@ -25,7 +27,18 @@ import {
   Filter,
   Calendar as CalendarIcon,
   X,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   format,
   isAfter,
@@ -58,7 +71,7 @@ const DATE_PRESETS = [
 ];
 
 export default function Movies() {
-  const { movies, isLoadingMovies } = useMedia();
+  const { movies, isLoadingMovies, deleteMovie } = useMedia();
   console.log("movies", movies);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -70,6 +83,10 @@ export default function Movies() {
   }>({});
   const [showFilters, setShowFilters] = useState(false);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
+  const [movieToDelete, setMovieToDelete] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const getDateRange = (preset: string) => {
     const today = new Date();
@@ -95,8 +112,29 @@ export default function Movies() {
         return { from: startOfMonth(today), to: endOfMonth(today) };
       case "thisYear":
         return { from: startOfYear(today), to: endOfYear(today) };
-      default:
-        return null;
+    }
+  };
+
+  const handleDeleteClick = (id: string, title: string) => {
+    setMovieToDelete({ id, title });
+  };
+
+  const confirmDelete = async () => {
+    if (!movieToDelete) return;
+
+    try {
+      await deleteMovie(movieToDelete.id);
+      toast({
+        title: "Success",
+        description: "Movie deleted successfully",
+      });
+      setMovieToDelete(null);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete movie",
+        variant: "destructive",
+      });
     }
   };
 
@@ -385,6 +423,7 @@ export default function Movies() {
                 genre={movie.genres}
                 coverUrl={movie.coverUrl}
                 onEdit={() => setEditingMovie(movie)}
+                onDelete={() => handleDeleteClick(movie._id, movie.title)}
               />
             ))}
           </div>
@@ -407,8 +446,38 @@ export default function Movies() {
 
         {/* Edit Modal */}
         {editingMovie && (
-          <MovieModal movie={editingMovie} isEdit={true} trigger={<div />} />
+          <MovieModal
+            movie={editingMovie}
+            isEdit={true}
+            trigger={<div />}
+            open={!!editingMovie}
+            onOpenChange={(open) => !open && setEditingMovie(null)}
+          />
         )}
+
+        <AlertDialog
+          open={!!movieToDelete}
+          onOpenChange={(open) => !open && setMovieToDelete(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete "
+                {movieToDelete?.title}" from your collection.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </MainLayout>
   );

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import { config } from "../config/environment";
+import { config } from "../config/environment.js";
 import type { TokenPayload } from "bookmarked-types";
 
 // Cookie configuration

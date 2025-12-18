@@ -6,8 +6,8 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { userService } from "../services/user.service";
-import { ApiError, asyncHandler } from "../middleware/error.middleware";
+import { userService } from "../services/user.service.js";
+import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 
 /**
  * Update user profile

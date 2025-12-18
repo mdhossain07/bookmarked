@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Dialog,
   DialogContent,
@@ -9,35 +9,41 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Plus, X, Film } from 'lucide-react';
-import { useMedia } from '@/contexts/MediaContext';
-import { toast } from '@/hooks/use-toast';
-import type { Movie } from 'bookmarked-types';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Plus, X, Film } from "lucide-react";
+import { useMedia } from "@/contexts/MediaContext";
+import { toast } from "@/hooks/use-toast";
+import type { Movie } from "bookmarked-types";
 
 // Form validation schema
 const movieSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(200, 'Title too long'),
+  title: z.string().min(1, "Title is required").max(200, "Title too long"),
   director: z.string().optional(),
-  industry: z.enum(['Hollywood', 'Bollywood', 'Bangla', 'South Indian', 'Foreign']),
-  genres: z.array(z.string()).min(1, 'At least one genre is required'),
-  status: z.enum(['watched', 'watching', 'to watch']),
+  industry: z.enum([
+    "Hollywood",
+    "Bollywood",
+    "Bangla",
+    "South Indian",
+    "Foreign",
+  ]),
+  genres: z.array(z.string()).min(1, "At least one genre is required"),
+  status: z.enum(["watched", "watching", "to watch"]),
   rating: z.number().min(1).max(5).optional(),
-  review: z.string().max(2000, 'Review too long').optional(),
+  review: z.string().max(2000, "Review too long").optional(),
   completedOn: z.string().optional(),
-  coverUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
+  coverUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
 });
 
 type MovieFormData = z.infer<typeof movieSchema>;
@@ -48,17 +54,47 @@ interface MovieModalProps {
   trigger?: React.ReactNode;
 }
 
-const INDUSTRIES = ['Hollywood', 'Bollywood', 'Bangla', 'South Indian', 'Foreign'];
+const INDUSTRIES = [
+  "Hollywood",
+  "Bollywood",
+  "Bangla",
+  "South Indian",
+  "Foreign",
+];
 const COMMON_GENRES = [
-  'Action', 'Adventure', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi',
-  'Thriller', 'Fantasy', 'Mystery', 'Crime', 'Documentary', 'Animation'
+  "Action",
+  "Adventure",
+  "Comedy",
+  "Drama",
+  "Horror",
+  "Romance",
+  "Sci-Fi",
+  "Thriller",
+  "Fantasy",
+  "Mystery",
+  "Crime",
+  "Documentary",
+  "Animation",
 ];
 
-export default function MovieModal({ movie, isEdit = false, trigger }: MovieModalProps) {
-  const [open, setOpen] = useState(false);
+export default function MovieModal({
+  movie,
+  isEdit = false,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}: MovieModalProps & {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? onOpenChange! : setInternalOpen;
+
   const [genres, setGenres] = useState<string[]>(movie?.genres || []);
-  const [newGenre, setNewGenre] = useState('');
-  const { addMovie, updateMovie } = useMedia();
+  const [newGenre, setNewGenre] = useState("");
+  const { addMovie, updateMovie, deleteMovie } = useMedia();
 
   const {
     register,
@@ -70,21 +106,58 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
   } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
     defaultValues: {
-      title: movie?.title || '',
-      director: movie?.director || '',
-      industry: movie?.industry || 'Hollywood',
+      title: movie?.title || "",
+      director: movie?.director || "",
+      industry: movie?.industry || "Hollywood",
       genres: movie?.genres || [],
-      status: movie?.status || 'to watch',
+      status: movie?.status || "to watch",
       rating: movie?.rating || undefined,
-      review: movie?.review || '',
-      completedOn: movie?.completedOn ? new Date(movie.completedOn).toISOString().split('T')[0] : '',
-      coverUrl: movie?.coverUrl || '',
+      review: movie?.review || "",
+      completedOn: movie?.completedOn
+        ? new Date(movie.completedOn).toISOString().split("T")[0]
+        : "",
+      coverUrl: movie?.coverUrl || "",
     },
   });
 
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      if (movie) {
+        reset({
+          title: movie.title || "",
+          director: movie.director || "",
+          industry: movie.industry || "Hollywood",
+          genres: movie.genres || [],
+          status: movie.status || "to watch",
+          rating: movie.rating || undefined,
+          review: movie.review || "",
+          completedOn: movie.completedOn
+            ? new Date(movie.completedOn).toISOString().split("T")[0]
+            : "",
+          coverUrl: movie.coverUrl || "",
+        });
+        setGenres(movie.genres || []);
+      } else {
+        reset({
+          title: "",
+          director: "",
+          industry: "Hollywood",
+          genres: [],
+          status: "to watch",
+          rating: undefined,
+          review: "",
+          completedOn: "",
+          coverUrl: "",
+        });
+        setGenres([]);
+      }
+    }
+  }, [open, movie, reset]);
+
   // Update genres in form when local state changes
   useEffect(() => {
-    setValue('genres', genres);
+    setValue("genres", genres);
   }, [genres, setValue]);
 
   const onSubmit = async (data: MovieFormData) => {
@@ -100,25 +173,27 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
       if (isEdit && movie) {
         await updateMovie(movie._id, movieData);
         toast({
-          title: 'Success',
-          description: 'Movie updated successfully!',
+          title: "Success",
+          description: "Movie updated successfully!",
         });
       } else {
         await addMovie(movieData);
         toast({
-          title: 'Success',
-          description: 'Movie added successfully!',
+          title: "Success",
+          description: "Movie added successfully!",
         });
       }
 
       setOpen(false);
-      reset();
-      setGenres([]);
+      if (!isEdit) {
+        reset();
+        setGenres([]);
+      }
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Something went wrong',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
       });
     }
   };
@@ -126,12 +201,12 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
   const addGenre = (genre: string) => {
     if (genre && !genres.includes(genre)) {
       setGenres([...genres, genre]);
-      setNewGenre('');
+      setNewGenre("");
     }
   };
 
   const removeGenre = (genreToRemove: string) => {
-    setGenres(genres.filter(g => g !== genreToRemove));
+    setGenres(genres.filter((g) => g !== genreToRemove));
   };
 
   const defaultTrigger = (
@@ -143,17 +218,17 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Film className="w-5 h-5" />
-            {isEdit ? 'Edit Movie' : 'Add New Movie'}
+            {isEdit ? "Edit Movie" : "Add New Movie"}
           </DialogTitle>
           <DialogDescription>
-            {isEdit ? 'Update your movie details' : 'Add a new movie to your collection'}
+            {isEdit
+              ? "Update your movie details"
+              : "Add a new movie to your collection"}
           </DialogDescription>
         </DialogHeader>
 
@@ -163,11 +238,13 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
             <Label htmlFor="title">Title *</Label>
             <Input
               id="title"
-              {...register('title')}
+              {...register("title")}
               placeholder="Enter movie title"
             />
             {errors.title && (
-              <p className="text-sm text-red-600 mt-1">{errors.title.message}</p>
+              <p className="text-sm text-red-600 mt-1">
+                {errors.title.message}
+              </p>
             )}
           </div>
 
@@ -176,7 +253,7 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
             <Label htmlFor="director">Director</Label>
             <Input
               id="director"
-              {...register('director')}
+              {...register("director")}
               placeholder="Enter director name"
             />
           </div>
@@ -186,14 +263,14 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
             <div>
               <Label htmlFor="industry">Industry *</Label>
               <Select
-                value={watch('industry')}
-                onValueChange={(value) => setValue('industry', value as any)}
+                value={watch("industry")}
+                onValueChange={(value) => setValue("industry", value as any)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {INDUSTRIES.map(industry => (
+                  {INDUSTRIES.map((industry) => (
                     <SelectItem key={industry} value={industry}>
                       {industry}
                     </SelectItem>
@@ -205,8 +282,8 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
             <div>
               <Label htmlFor="status">Status *</Label>
               <Select
-                value={watch('status')}
-                onValueChange={(value) => setValue('status', value as any)}
+                value={watch("status")}
+                onValueChange={(value) => setValue("status", value as any)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -224,8 +301,12 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
           <div>
             <Label>Genres *</Label>
             <div className="flex flex-wrap gap-2 mb-2">
-              {genres.map(genre => (
-                <Badge key={genre} variant="secondary" className="flex items-center gap-1">
+              {genres.map((genre) => (
+                <Badge
+                  key={genre}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {genre}
                   <X
                     className="w-3 h-3 cursor-pointer"
@@ -240,7 +321,7 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
                 onChange={(e) => setNewGenre(e.target.value)}
                 placeholder="Add genre"
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
+                  if (e.key === "Enter") {
                     e.preventDefault();
                     addGenre(newGenre);
                   }
@@ -255,7 +336,7 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
               </Button>
             </div>
             <div className="flex flex-wrap gap-1 mt-2">
-              {COMMON_GENRES.filter(g => !genres.includes(g)).map(genre => (
+              {COMMON_GENRES.filter((g) => !genres.includes(g)).map((genre) => (
                 <Button
                   key={genre}
                   type="button"
@@ -269,7 +350,9 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
               ))}
             </div>
             {errors.genres && (
-              <p className="text-sm text-red-600 mt-1">{errors.genres.message}</p>
+              <p className="text-sm text-red-600 mt-1">
+                {errors.genres.message}
+              </p>
             )}
           </div>
 
@@ -282,7 +365,7 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
                 type="number"
                 min="1"
                 max="5"
-                {...register('rating', { valueAsNumber: true })}
+                {...register("rating", { valueAsNumber: true })}
                 placeholder="Rate this movie"
               />
             </div>
@@ -292,7 +375,7 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
               <Input
                 id="completedOn"
                 type="date"
-                {...register('completedOn')}
+                {...register("completedOn")}
               />
             </div>
           </div>
@@ -302,11 +385,13 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
             <Label htmlFor="coverUrl">Cover Image URL</Label>
             <Input
               id="coverUrl"
-              {...register('coverUrl')}
+              {...register("coverUrl")}
               placeholder="https://example.com/movie-poster.jpg"
             />
             {errors.coverUrl && (
-              <p className="text-sm text-red-600 mt-1">{errors.coverUrl.message}</p>
+              <p className="text-sm text-red-600 mt-1">
+                {errors.coverUrl.message}
+              </p>
             )}
           </div>
 
@@ -315,28 +400,34 @@ export default function MovieModal({ movie, isEdit = false, trigger }: MovieModa
             <Label htmlFor="review">Review/Notes</Label>
             <Textarea
               id="review"
-              {...register('review')}
+              {...register("review")}
               placeholder="Write your thoughts about this movie..."
               rows={3}
             />
           </div>
 
           {/* Submit Buttons */}
-          <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              {isSubmitting ? 'Saving...' : isEdit ? 'Update Movie' : 'Add Movie'}
-            </Button>
+          <div className="flex justify-between pt-4">
+            <div className="flex gap-2 ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="bg-purple-600 hover:bg-purple-700"
+              >
+                {isSubmitting
+                  ? "Saving..."
+                  : isEdit
+                  ? "Update Movie"
+                  : "Add Movie"}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

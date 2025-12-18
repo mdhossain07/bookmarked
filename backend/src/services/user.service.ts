@@ -6,9 +6,9 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { UserModel, UserDoc } from "../models/User";
-import { hashPassword, comparePassword } from "../utils/password";
-import { ApiError } from "../middleware/error.middleware";
+import { UserModel, UserDoc } from "../models/User.js";
+import { hashPassword, comparePassword } from "../utils/password.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 export class UserService {
   /**

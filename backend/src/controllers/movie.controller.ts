@@ -10,8 +10,8 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { movieService } from "../services/movie.service";
-import { ApiError, asyncHandler } from "../middleware/error.middleware";
+import { movieService } from "../services/movie.service.js";
+import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 
 /**
  * Create a new movie

@@ -92,17 +92,17 @@ const userSchema = new Schema<UserDoc>(
     timestamps: true,
     toJSON: {
       transform: function (_doc: any, ret: any) {
-        ret["_id"] = ret["_id"].toString();
-        delete ret["password"];
-        delete ret["__v"];
+        ret._id = ret._id.toString();
+        delete ret.password;
+        delete ret.__v;
         return ret;
       },
     },
     toObject: {
       transform: function (_doc: any, ret: any) {
-        ret["_id"] = ret["_id"].toString();
-        delete ret["password"];
-        delete ret["__v"];
+        ret._id = ret._id.toString();
+        delete ret.password;
+        delete ret.__v;
         return ret;
       },
     },

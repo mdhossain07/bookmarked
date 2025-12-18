@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MovieDocument, MovieStats } from "../database/movie";
+import type { MovieDocument, MovieStats } from "../database/movie.js";
 
 // Industry enum schema
 export const MovieIndustrySchema = z.enum([

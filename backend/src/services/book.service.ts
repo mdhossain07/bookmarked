@@ -7,8 +7,8 @@ import {
   HttpStatus,
   ErrorCodes,
 } from "bookmarked-types";
-import { BookModel, BookDoc } from "../models/Book";
-import { ApiError } from "../middleware/error.middleware";
+import { BookModel, BookDoc } from "../models/Book.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 // Type for book document with _id as string
 type BookDocument = ReturnType<BookDoc["toSafeObject"]>;

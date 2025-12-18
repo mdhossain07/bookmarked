@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { asyncHandler } from "../middleware/error.middleware";
-import { openaiService } from "../services/openAI.service";
+import { asyncHandler } from "../middleware/error.middleware.js";
+import { openaiService } from "../services/openAI.service.js";
 import { ApiResponse, HttpStatus } from "bookmarked-types";
 
 class OpenAIController {
