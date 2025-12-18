@@ -9,10 +9,7 @@
   "functions": {
     "api/index.ts": {
       "maxDuration": 10,
-      "includeFiles": [
-        "../packages/bookmarked-types/dist/**",
-        "../packages/bookmarked-types/package.json"
-      ]
+      "includeFiles": "../packages/bookmarked-types/**"
     }
   }
 }
