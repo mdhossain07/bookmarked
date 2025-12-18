@@ -3,10 +3,12 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
-import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { config } from "./config/environment.js";
-import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./middleware/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import movieRoutes from "./routes/movie.routes.js";
@@ -18,21 +20,14 @@ import { ApiResponse, HttpStatus } from "bookmarked-types";
 const app: Application = express();
 
 // Security middleware
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-  })
-);
+app.use(helmet());
 
 // CORS configuration
 app.use(cors(config.cors));
 
-// Rate limiting
-const limiter = rateLimit(config.rateLimit);
-app.use("/api/", limiter);
 // Body parsing middleware
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Cookie parsing middleware
 app.use(cookieParser());
