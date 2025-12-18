@@ -1,5 +1,5 @@
 import { config } from "../config/environment.js";
-import OpenAI from "openai";
+import { OpenAI } from "openai";
 
 interface OpenAIResponse {
   content: string;
