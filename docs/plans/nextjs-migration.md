@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 6 are committed. Phase 7 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 7 are committed. Phase 8 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -37,7 +37,7 @@ You open one URL. Login, books, movies, the dashboard, and AI search work the sa
 | D7 | Data fetching | Keep TanStack Query and axios on the client. | Move reads to React Server Components now. |
 | D8 | Color palette | "Reading room": ivory, ink, brass, sage for books, plum for movies (Phase 6). | Your own brand colors. The tokens keep a palette change to one file. |
 | D9 | Typefaces | Fraunces for headings, Inter for body text, through `next/font`. | Inter only. |
-| D10 | 3D library | `three` with `@react-three/fiber`, without `drei` or postprocessing. | Plain `three` in a `useEffect`. Fewer packages, more manual cleanup. |
+| D10 | 3D library | Plain `three` in a `useEffect`, with manual cleanup. Changed in Phase 8: with `@react-three/fiber` the chunk was 242 KB (gzip), over the 200 KB budget. Plain `three` is 133 KB. | `three` with `@react-three/fiber`. Less manual code, but a larger download. |
 | D11 | Where the 3D scene shows | Login, register, and a band behind the dashboard greeting. Not on list pages. | Login and register only. |
 | D12 | Motion library | CSS only (Tailwind classes and `tailwindcss-animate`). No animation library. | `motion` (Framer Motion) for page transitions. |
 
@@ -45,7 +45,7 @@ Target versions:
 
 - Next.js 16 (current 16.3.x), React 19, Zod 3, Node 22 (`.nvmrc` already says 22).
 - Mongoose 8. Mongoose 9 is a separate upgrade.
-- `three` 0.18x and `@react-three/fiber` 9.x. `@react-three/fiber` 9.8 accepts React 19.0 to 19.3, so keep React inside that range.
+- `three` 0.186. There is no `@react-three/fiber` (D10), so React has no version limit from the 3D code.
 
 Next.js 16 facts that this plan depends on:
 
@@ -195,7 +195,7 @@ bookmarked/
       services/{auth,user,book,movie,ai}.service.ts
     shared/                     # Zod schemas and types (from bookmarked-types)
     components/
-      three/AmbientScene.tsx    # the only three.js code (Phase 8)
+      three/{AmbientScene,SceneLayer}.tsx   # the only three.js code (Phase 8)
       layout/  media/  ui/
     contexts/  hooks/  lib/
 ```
@@ -504,7 +504,7 @@ What was done:
 
 - Type scale: `tailwind.config.ts` defines four sizes only, 14, 16, 20, and 32 px. A scan of the running page finds only those four.
 - Layout: a sticky sidebar. A brass bar slides to the active item. The top bar has the theme toggle and a user menu with the avatar, the name, and log out. On phones, a bottom navigation bar replaces the sidebar. Page content has a 1200 px maximum width. Each page fades in once (`template.tsx`).
-- Login and register: two columns on wide screens. The form is on the left. The right panel is an ink gradient with a short line of text, and it carries `data-scene-slot` for Phase 8. On phones the form uses the full width over a soft gradient. Password fields have a labeled show/hide button, and errors are tied to their fields for screen readers.
+- Login and register: two columns on wide screens. The form is on the left. The right panel is an ink gradient with a short line of text, and Phase 8 puts the 3D scene in it. On phones the form uses the full width over a soft gradient. Password fields have a labeled show/hide button, and errors are tied to their fields for screen readers.
 - Dashboard:
   - A greeting. It is set after load, because the server hour and the browser hour can differ.
   - Four stat tiles, each with a top border in the books or movies color.
@@ -532,7 +532,7 @@ Done when: every page uses the new layout and components, and with reduced motio
 
 What this phase does, in plain words: it adds one slow, quiet 3D background. Thin, softly lit "pages" and small points of light drift and turn slowly in the palette colors, like dust in a library. It is decoration only. It never covers text, and you cannot click it.
 
-1. Install `three` and `@react-three/fiber` (D10). Do not add `drei`, postprocessing, textures, or 3D model files.
+1. Install `three` (D10, changed in this phase: no `@react-three/fiber`). Do not add `drei`, postprocessing, textures, or 3D model files.
 2. Create one component, `src/components/three/AmbientScene.tsx` (`"use client"`):
    - One `InstancedMesh` of about 60 thin planes (the "pages") and one `Points` object with about 200 points.
    - In `useFrame`, each page turns and drifts on a slow sine path. One full cycle takes 20 seconds or more.
@@ -553,6 +553,23 @@ What this phase does, in plain words: it adds one slow, quiet 3D background. Thi
    - Cumulative Layout Shift is 0, because the canvas sits in an absolute-positioned layer.
 
 Done when: the budgets pass and the scene works in both themes. Reduced motion gives a still frame. After 10 navigations between login and dashboard, the browser console shows no WebGL context warning.
+
+What was done:
+
+- `src/components/three/AmbientScene.tsx` uses plain `three` with no wrapper library. It draws 60 thin pages (one `InstancedMesh`) and 200 points of dust. Each page drifts on a sine path, and a full cycle takes 20 to 40 seconds. Positions come from a fixed formula, so every load looks the same.
+- Colors are read from `--brass`, `--books`, and `--movies` on the page. When the theme class changes, the scene reads them again. The plan listed `--accent` and `--muted`. These are near-gray surface colors and cannot be seen on the dark panel, so brass is used instead.
+- `SceneLayer.tsx` loads the scene with `next/dynamic` and `ssr: false`. It takes a `minWidth` value. The login and register panel is hidden below 1024 px, so phones never download three.js.
+- Where it shows: the right panel on login and register (the layout keeps one scene between the two pages), and the right side of a band behind the dashboard greeting. A gradient behind the scene shows until it is ready, and it stays if WebGL is missing. A dark fade under the panel text keeps the text clear.
+- Guards: the pixel ratio is at most 1.5, there is no antialiasing and no shadows, the loop stops when the tab is hidden or the canvas is off screen, and the WebGL context is freed on unmount. The canvas has `aria-hidden` and `pointer-events: none`. With reduced motion, one still frame is drawn, and a theme change draws it again. On a mouse device, the camera turns 3 degrees at most toward the pointer.
+- D10 changed. The first version used `@react-three/fiber`, and its chunk was 242 KB (gzip), over the budget. Plain `three` gives 133 KB.
+
+How it was tested, on a production build:
+
+- Chunk size: 133 KB (gzip), only on the three pages from D11.
+- Lighthouse, mobile profile, `/login`: Performance 93 and 94 in two runs, Cumulative Layout Shift 0, Total Blocking Time 10 ms or less. Before the `minWidth` gate, the score was 75.
+- After 10 round trips between dashboard and books: one canvas, no console message, Cumulative Layout Shift 0.
+- Both themes on login and dashboard looked right in a real Chrome. The Browser pane cannot capture WebGL, so those screenshots come from Chrome.
+- Not verified: the operating-system reduced-motion setting (please check that once, as in Phase 7).
 
 ### Phase 9: Tests and quality gates
 
@@ -618,5 +635,4 @@ Done when: the Production URL passes the manual list, and the old projects are r
 | The `ratelimits` collection grows. | Storage use. | The TTL index deletes old entries automatically. |
 | The 3D scene is slow on old phones. | Battery use, slow page. | DPR cap. Pause in hidden tabs. Still frame with reduced motion. Lighthouse budget in Phase 9. Option: show the scene only on screens 768 pixels or wider. |
 | The new palette does not suit you. | Rework. | All colors are tokens in one file (D8). Review the palette at the Phase 6 stop before Phase 7 starts. |
-| A React update goes past 19.3. | `@react-three/fiber` peer range breaks the install. | Pin React to `~19.x` inside the range until a newer `@react-three/fiber` supports it. |
 | Removing endpoints that something outside the app uses. | That caller breaks. | Only the frontend in this repository uses the API. If you know of another caller, keep those routes (D3). |
