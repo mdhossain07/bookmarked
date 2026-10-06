@@ -932,6 +932,11 @@ onetime@^5.1.2:
   dependencies:
     mimic-fn "^2.1.0"
 
+openai@^7.28.0:
+  version "7.28.0"
+  resolved "https://registry.yarnpkg.com/openai/-/openai-7.28.0.tgz#da1c2e1bd3a7dabafdd662f6931c75e6ce47da1e"
+  integrity sha512-HSY4fFLflQGYe2kvO0atm6/GzhD61gpyiOZZUvO4nptMUhuB1to2K3wwFpFqc5gfEK0SxyIIFiu1yE2MtygWcA==
+
 os-paths@^4.0.1:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/os-paths/-/os-paths-4.4.0.tgz#2908b5bcb60cbfe3afb869292281a2a6b2f77ebe"

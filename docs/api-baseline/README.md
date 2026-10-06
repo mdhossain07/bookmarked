@@ -1,6 +1,6 @@
 # API baseline
 
-`express.json` records how the Express API answers 67 requests. Phase 3 of the [migration plan](../plans/nextjs-migration.md) runs the same requests against the Next.js API and compares the two files.
+`express.json` records how the Express API answers 66 requests. `nextjs.json` records the same requests against the Next.js API. Phase 3 of the [migration plan](../plans/nextjs-migration.md) runs the same requests against the Next.js API and compares the two files.
 
 ## How it was recorded
 
@@ -27,7 +27,10 @@ The script replaces IDs, dates, and cookie values with placeholders, so two runs
 2. Compare the files with `diff docs/api-baseline/express.json docs/api-baseline/nextjs.json`.
 3. Each difference must be one of these:
    - A case with a `bug` field. The fix in the plan changes that result on purpose.
-   - A route that the plan removes (decision D3). The Next.js app answers 404.
+   - A route that the plan removes (decision D3). The Next.js answer depends on the path:
+     - An unknown path gives 404.
+     - A path that exists, but without that method, gives 405.
+     - A path in the form `/api/books/<id>`, for example `/api/books/search`, gives 400.
    - A row in the "Known differences" list below.
 
 ## Bugs that the baseline proves
@@ -43,6 +46,7 @@ The script replaces IDs, dates, and cookie values with placeholders, so two runs
 | `refresh: ok` | F4 | 200 | 404 (route removed) |
 | `books: get after bulk` | F7 | status "read" with no `completedOn` | route removed (D3) |
 | `register: no lastName` | F10 | 400 | 201 |
+| `movies: stats` | F14 | `total: 0` with one movie | `total: 1` |
 
 ## Known differences
 
@@ -53,3 +57,12 @@ These are allowed, because Next.js or the plan changes them on purpose:
 - The cookie changes from `Max-Age=86400` (1 day) to 7 days (F4), and `SameSite=Lax` is written as `SameSite=lax`.
 - Auth errors (401) now have `details: {}`. Express left `details` out for these.
 - The `Authorization: Bearer` header is no longer accepted. The baseline does not use it.
+- A bad book or movie ID gives the standard validation error, with "Invalid ID format" (F13).
+- `openai search: no prompt` gives the standard validation error.
+- `login: deactivated, wrong password` says "Invalid email or password" (S3).
+- After the duplicate fix (S1), the second "Who Framed Roger Rabbit?" is not created, so later book lists and stats have one book fewer.
+- JSON key order can differ. The comparison counts these cases as different, but the values are the same.
+
+## Result for Next.js (Phase 3)
+
+27 of 66 cases are the same. Each of the other 39 cases matches a row above: a planned fix, a removed route, or a known difference. Two runs on empty databases give the same `nextjs.json`.

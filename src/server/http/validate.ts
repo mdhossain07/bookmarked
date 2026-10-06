@@ -35,3 +35,18 @@ export async function parseParams<S extends z.ZodTypeAny>(
 ): Promise<z.output<S>> {
   return schema.parse(await params);
 }
+
+/** Escapes regex metacharacters so user text matches literally (S1: `C++`, `Rabbit?`). */
+export function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Case-insensitive "contains" match for user text. */
+export function containsText(text: string): RegExp {
+  return new RegExp(escapeRegex(text), "i");
+}
+
+/** Case-insensitive whole-value match for user text. */
+export function equalsText(text: string): RegExp {
+  return new RegExp(`^${escapeRegex(text)}$`, "i");
+}

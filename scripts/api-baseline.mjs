@@ -43,7 +43,8 @@ async function call(name, method, path, { body, auth = true, rawCookie, bug } = 
   try {
     parsed = JSON.parse(text);
   } catch {
-    parsed = text;
+    // HTML pages embed a build ID that changes on every build
+    parsed = text.startsWith("<!DOCTYPE html>") ? "<html page>" : text;
   }
   results.push({
     name,

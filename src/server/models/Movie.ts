@@ -184,7 +184,8 @@ movieSchema.statics["findByUserIdAndStatus"] = function (
 
 movieSchema.statics["getMovieStats"] = async function (userId: string) {
   const pipeline = [
-    { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+    // userId is stored as a string, so an ObjectId never matches
+    { $match: { userId } },
     {
       $group: {
         _id: null,

@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 and 1 are committed. Phase 2 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 2 are committed. Phase 3 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -133,6 +133,7 @@ Each issue has an ID. The phases below refer to these IDs. "Fixed by migration" 
 | F10 | `RegisterSchema` requires `lastName`, but the model and the types say it is optional. | `packages/bookmarked-types/src/api/auth.ts:9`, `backend/src/models/User.ts:65` | Phase 1: make it optional everywhere. |
 | F11 | Every protected page mount calls `/auth/profile` again, and the page shows a spinner first. | `frontend/src/components/ProtectedRoute.tsx:29` | Phase 4: the server layout loads the user once. |
 | F12 | The 404 message says `Route GET / not found` for every unknown path, because `app.use("*")` changes `req.path`. Found by the baseline. | `backend/src/middleware/error.middleware.ts:127` | Phase 3: the Next.js 404 response names the real path. |
+| F14 | Movie statistics are always zero. The stats queries compare the `userId` text field with an ObjectId, so no movie matches. Found by the baseline: `total: 0` while a movie exists. | `backend/src/models/Movie.ts:187`, `backend/src/services/movie.service.ts` (industry and genre stats) | Phase 3: match the `userId` text. |
 | F13 | The two search routes read different parameters: books use `search`, movies use `q`. A bad book ID says "Invalid ID format", and a bad movie ID says "Validation failed". Found by the baseline. | `backend/src/controllers/movie.controller.ts:286`, `backend/src/services/book.service.ts:66` | Phase 3: the search routes go (D3). One `ObjectIdSchema` message for both. |
 
 ### Maintenance and tooling
@@ -200,8 +201,8 @@ bookmarked/
 ### Phase 0: Preparation (done, waits for review)
 
 1. Branch `chore-nextjs-p0-baseline` exists, created from `main` with Git Town. There is no ClickUp task for this project.
-2. The current API behavior is recorded in `docs/api-baseline/express.json`: 67 requests with the status code, the cookie attributes, and the response body. `scripts/api-baseline.mjs` makes the recording, and `docs/api-baseline/README.md` explains how to run it again. Phase 3 runs it against the Next.js app and compares.
-3. The recording ran the old API against a local test database. It proves bugs S1, S2, S3, F3, F4, F7, and F10, and it found F12 and F13.
+2. The current API behavior is recorded in `docs/api-baseline/express.json`: 66 requests with the status code, the cookie attributes, and the response body. `scripts/api-baseline.mjs` makes the recording, and `docs/api-baseline/README.md` explains how to run it again. Phase 3 runs it against the Next.js app and compares.
+3. The recording ran the old API against a local test database. It proves bugs S1, S2, S3, F3, F4, F7, and F10, and it found F12, F13, and F14.
 4. Still open, for you: make sure that you have a MongoDB Atlas cluster and a connection string for production. Pick the Atlas region now. The Vercel function region must be near it. This is needed only in Phase 11.
 
 Done when: the branch exists and the route list is recorded. Both are done.
@@ -262,7 +263,7 @@ How it was tested: a temporary route (deleted before review) ran against a local
 
 Done when: `GET /api/health` returns `{ db: "connected" }` locally, and type-check and build pass. All pass.
 
-### Phase 3: Port the API
+### Phase 3: Port the API (done, waits for review)
 
 Port each Express route to a Route Handler at the same path, with the same request and response shapes. Services move almost unchanged to `src/server/services/`. Fix the listed issues during the port.
 
@@ -288,7 +289,36 @@ Shared details for this phase:
 2. Rate limit (D4): collection `ratelimits` with fields `key`, `count`, `expiresAt`, and a TTL index on `expiresAt`. One `findOneAndUpdate` with `$inc` and `upsert` for each request. The key is the route name plus the client IP (`x-forwarded-for` on Vercel) or the user ID. Limits: login and register 10 per 15 minutes per IP. AI search 20 per hour per user. Return 429 with the existing `ApiResponse` shape.
 3. Response headers: the security headers from `helmet` go to `headers()` in `next.config.ts`. Use `X-Content-Type-Options`, `Referrer-Policy`, `X-Frame-Options: DENY`, and `Strict-Transport-Security`. Vercel compresses responses, so `compression` is not needed. Vercel logs requests, so `morgan` is not needed.
 
-Done when: every route in the table gives the same answers as the Express route for the Phase 0 cases. The new fixes work as described.
+What was done:
+
+- 15 route files under `src/app/api/`: the routes in the table above, plus `GET /api/health` (Phase 2) and a JSON 404 for unknown `/api` paths (F12).
+- The services are in `src/server/services/`. Book and movie code share `media.ts`: one page query, one count-by-field query, and one duplicate filter.
+- Only the routes that the client uses are ported. The D3 routes (`batch-add`, `check-duplicates`, `bulk-update-status`, `search`, `status/:status`, `industry/:industry`, `refresh`, `generate-story`, `latest-update`) are not ported. The old code for them goes in Phase 5.
+- Security headers are in `next.config.ts`, and `X-Powered-By` is off.
+
+Changes beyond the table above:
+
+- F14: movie stats match the `userId` text. Before, the stats were always zero.
+- If a book update gives the same title and author as another book, the API answers 409. Movies already had this rule.
+- Pages sort by `_id` after the chosen field, so equal values do not repeat or go missing across pages. Genre counts with equal values sort by name.
+- Login with an unknown email still runs one bcrypt compare, so the response time does not show which emails exist (S3).
+- A bad ID gives the standard validation error with "Invalid ID format" for books and movies (F13).
+- AI search: a bad prompt gives the standard validation error. A missing key gives 503. An OpenAI failure gives 502 and one short log line.
+- The rate limit stores one document for each key and window in `ratelimits`. A unique index on `key` and a TTL index on `expiresAt` keep it small.
+
+How it was tested, against a production build (`next start`) and a local MongoDB:
+
+- `scripts/api-baseline.mjs` ran against Next.js and saved `docs/api-baseline/nextjs.json`. Two runs on empty databases give the same file. 27 of 66 cases are the same as Express. `docs/api-baseline/README.md` explains each of the 39 differences: planned fixes, removed routes, or the known differences.
+- Extra checks, all as expected:
+  - A book update to a duplicate title and author gives 409.
+  - Six pages of equal sort values have no repeats.
+  - `C++` and `(` in filters give 200.
+  - AI errors give 400 and 502.
+  - Login takes about 220 ms for an unknown email and for a known email.
+  - The 11th login in a window gives 429 with `retryAfterSeconds`.
+  - All collections have their indexes.
+
+Done when: every route in the table gives the same answers as the Express route for the Phase 0 cases, except the documented differences. The new fixes work as described. Type-check and build pass. All pass.
 
 ### Phase 4: Port the pages
 
