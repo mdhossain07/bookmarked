@@ -1,0 +1,1629 @@
+{
+  "baseUrl": "<base>",
+  "cases": [
+    {
+      "name": "welcome",
+      "method": "GET",
+      "path": "/",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Welcome to Bookmarked API",
+        "data": {
+          "name": "Bookmarked API",
+          "version": "1.0.0",
+          "environment": "production",
+          "documentation": "/api/docs"
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "unknown route",
+      "method": "GET",
+      "path": "/api/nope",
+      "status": 404,
+      "body": {
+        "success": false,
+        "message": "Route GET / not found",
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "The requested resource was not found"
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "register: invalid body",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "email",
+                "message": "Invalid email format",
+                "code": "invalid_string"
+              },
+              {
+                "field": "firstName",
+                "message": "Required",
+                "code": "invalid_type"
+              },
+              {
+                "field": "lastName",
+                "message": "Required",
+                "code": "invalid_type"
+              },
+              {
+                "field": "password",
+                "message": "Password must be at least 8 characters",
+                "code": "too_small"
+              },
+              {
+                "field": "confirmPassword",
+                "message": "Required",
+                "code": "invalid_type"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "register: no lastName",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "bug": "F10",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "lastName",
+                "message": "Required",
+                "code": "invalid_type"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "register: ok",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "status": 201,
+      "setCookie": [
+        "accessToken=<value>; Max-Age=86400; Path=/; Expires=<date>; HttpOnly; Secure; SameSite=Lax"
+      ],
+      "body": {
+        "success": true,
+        "message": "User registered successfully",
+        "data": {
+          "user": {
+            "email": "baseline@example.com",
+            "firstName": "Base",
+            "lastName": "Line",
+            "isActive": true,
+            "emailVerified": false,
+            "_id": "<_id>",
+            "preferences": {
+              "defaultView": "grid",
+              "itemsPerPage": 20,
+              "theme": "light",
+              "language": "en",
+              "timezone": "UTC"
+            },
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "lastLogin": "<lastLogin>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "register: duplicate",
+      "method": "POST",
+      "path": "/api/auth/register",
+      "status": 409,
+      "body": {
+        "success": false,
+        "message": "User already exists with this email",
+        "error": {
+          "code": "DUPLICATE_RESOURCE",
+          "message": "User already exists with this email",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "profile: no cookie",
+      "method": "GET",
+      "path": "/api/auth/profile",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Access token required",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "No access token provided"
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "profile: bad token",
+      "method": "GET",
+      "path": "/api/auth/profile",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Invalid or expired token",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "Invalid token"
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "login: invalid body",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "email",
+                "message": "Invalid email format",
+                "code": "invalid_string"
+              },
+              {
+                "field": "password",
+                "message": "Required",
+                "code": "invalid_type"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "login: wrong password",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Invalid email or password",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "Invalid email or password",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "login: ok",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200,
+      "setCookie": [
+        "accessToken=<value>; Max-Age=86400; Path=/; Expires=<date>; HttpOnly; Secure; SameSite=Lax"
+      ],
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "user": {
+            "_id": "<_id>",
+            "email": "baseline@example.com",
+            "firstName": "Base",
+            "lastName": "Line",
+            "isActive": true,
+            "emailVerified": false,
+            "preferences": {
+              "defaultView": "grid",
+              "itemsPerPage": 20,
+              "theme": "light",
+              "language": "en",
+              "timezone": "UTC"
+            },
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "lastLogin": "<lastLogin>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "profile: ok",
+      "method": "GET",
+      "path": "/api/auth/profile",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Profile retrieved successfully",
+        "data": {
+          "user": {
+            "_id": "<_id>",
+            "email": "baseline@example.com",
+            "firstName": "Base",
+            "lastName": "Line",
+            "isActive": true,
+            "emailVerified": false,
+            "preferences": {
+              "defaultView": "grid",
+              "itemsPerPage": 20,
+              "theme": "light",
+              "language": "en",
+              "timezone": "UTC"
+            },
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "lastLogin": "<lastLogin>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "refresh: ok",
+      "method": "POST",
+      "path": "/api/auth/refresh",
+      "bug": "F4",
+      "status": 200,
+      "setCookie": [
+        "accessToken=<value>; Max-Age=86400; Path=/; Expires=<date>; HttpOnly; Secure; SameSite=Lax"
+      ],
+      "body": {
+        "success": true,
+        "message": "Token refreshed successfully",
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "update-profile: ok",
+      "method": "PUT",
+      "path": "/api/users/update-profile",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Profile updated successfully",
+        "data": {
+          "user": {
+            "_id": "<_id>",
+            "email": "baseline@example.com",
+            "firstName": "Basey",
+            "lastName": "Line",
+            "isActive": true,
+            "emailVerified": false,
+            "preferences": {
+              "defaultView": "list",
+              "itemsPerPage": 20,
+              "theme": "light",
+              "language": "en",
+              "timezone": "UTC"
+            },
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "lastLogin": "<lastLogin>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "update-profile: invalid",
+      "method": "PUT",
+      "path": "/api/users/update-profile",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "preferences.itemsPerPage",
+                "message": "Number must be greater than or equal to 10",
+                "code": "too_small"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "change-password: mismatch",
+      "method": "POST",
+      "path": "/api/users/change-password",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "confirmPassword",
+                "message": "Passwords don't match",
+                "code": "custom"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "change-password: wrong current",
+      "method": "POST",
+      "path": "/api/users/change-password",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Current password is incorrect",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "Current password is incorrect",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "change-password: ok",
+      "method": "POST",
+      "path": "/api/users/change-password",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Password changed successfully",
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: create",
+      "method": "POST",
+      "path": "/api/books",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Book created successfully",
+        "data": {
+          "book": {
+            "userId": "<userId>",
+            "title": "Dune",
+            "author": "Frank Herbert",
+            "genres": [
+              "Sci-Fi"
+            ],
+            "status": "read",
+            "rating": 9,
+            "_id": "<_id>",
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "completedOn": "<completedOn>",
+            "__v": 0
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: create duplicate",
+      "method": "POST",
+      "path": "/api/books",
+      "status": 409,
+      "body": {
+        "success": false,
+        "message": "Book with this title and author already exists in your collection",
+        "error": {
+          "code": "DUPLICATE_RESOURCE",
+          "message": "Book with this title and author already exists in your collection",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: create invalid",
+      "method": "POST",
+      "path": "/api/books",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "title",
+                "message": "Title is required",
+                "code": "too_small"
+              },
+              {
+                "field": "genres",
+                "message": "At least one genre is required",
+                "code": "too_small"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: create regex title",
+      "method": "POST",
+      "path": "/api/books",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Book created successfully",
+        "data": {
+          "book": {
+            "userId": "<userId>",
+            "title": "Who Framed Roger Rabbit?",
+            "genres": [
+              "Mystery"
+            ],
+            "status": "will read",
+            "_id": "<_id>",
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "__v": 0
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: duplicate regex title",
+      "method": "POST",
+      "path": "/api/books",
+      "bug": "S1",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Book created successfully",
+        "data": {
+          "book": {
+            "userId": "<userId>",
+            "title": "Who Framed Roger Rabbit?",
+            "genres": [
+              "Mystery"
+            ],
+            "status": "will read",
+            "_id": "<_id>",
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "__v": 0
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: list",
+      "method": "GET",
+      "path": "/api/books",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Books retrieved successfully",
+        "data": {
+          "books": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Who Framed Roger Rabbit?",
+              "genres": [
+                "Mystery"
+              ],
+              "status": "will read",
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "__v": 0
+            },
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Who Framed Roger Rabbit?",
+              "genres": [
+                "Mystery"
+              ],
+              "status": "will read",
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "__v": 0
+            },
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Dune",
+              "author": "Frank Herbert",
+              "genres": [
+                "Sci-Fi"
+              ],
+              "status": "read",
+              "rating": 9,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 3,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: list filtered",
+      "method": "GET",
+      "path": "/api/books?status=read&status=reading&sortBy=title&sortOrder=asc&page=1&limit=5",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Books retrieved successfully",
+        "data": {
+          "books": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Dune",
+              "author": "Frank Herbert",
+              "genres": [
+                "Sci-Fi"
+              ],
+              "status": "read",
+              "rating": 9,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 5,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: list search",
+      "method": "GET",
+      "path": "/api/books?search=dune",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Books retrieved successfully",
+        "data": {
+          "books": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Dune",
+              "author": "Frank Herbert",
+              "genres": [
+                "Sci-Fi"
+              ],
+              "status": "read",
+              "rating": 9,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: list search regex chars",
+      "method": "GET",
+      "path": "/api/books?search=C%2B%2B",
+      "bug": "S1",
+      "status": 500,
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "error": {
+          "code": "INTERNAL_SERVER_ERROR",
+          "message": "Internal server error",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: list invalid query",
+      "method": "GET",
+      "path": "/api/books?sortBy=nope",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "sortBy",
+                "message": "Invalid enum value. Expected 'title' | 'author' | 'rating' | 'completedOn' | 'createdAt' | 'updatedAt', received 'nope'",
+                "code": "invalid_enum_value"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: stats",
+      "method": "GET",
+      "path": "/api/books/stats",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Book statistics retrieved successfully",
+        "data": {
+          "stats": {
+            "total": 3,
+            "byStatus": {
+              "read": 1,
+              "reading": 0,
+              "will read": 2
+            },
+            "byGenre": {
+              "Mystery": 2,
+              "Sci-Fi": 1
+            },
+            "averageRating": 9,
+            "recentlyCompleted": 1
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: search route",
+      "method": "GET",
+      "path": "/api/books/search?search=dune",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Book search completed successfully",
+        "data": {
+          "books": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Dune",
+              "author": "Frank Herbert",
+              "genres": [
+                "Sci-Fi"
+              ],
+              "status": "read",
+              "rating": 9,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: by status",
+      "method": "GET",
+      "path": "/api/books/status/read",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Books with status 'read' retrieved successfully",
+        "data": {
+          "books": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Dune",
+              "author": "Frank Herbert",
+              "genres": [
+                "Sci-Fi"
+              ],
+              "status": "read",
+              "rating": 9,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: get",
+      "method": "GET",
+      "path": "/api/books/<id>",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Book retrieved successfully",
+        "data": {
+          "book": {
+            "_id": "<_id>",
+            "userId": "<userId>",
+            "title": "Dune",
+            "author": "Frank Herbert",
+            "genres": [
+              "Sci-Fi"
+            ],
+            "status": "read",
+            "rating": 9,
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "completedOn": "<completedOn>",
+            "__v": 0
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: get bad id",
+      "method": "GET",
+      "path": "/api/books/not-an-id",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Invalid ID format",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Invalid ID format",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: get missing",
+      "method": "GET",
+      "path": "/api/books/000000000000000000000000",
+      "status": 404,
+      "body": {
+        "success": false,
+        "message": "Book not found",
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "Book not found",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: update",
+      "method": "PUT",
+      "path": "/api/books/<id>",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Book updated successfully",
+        "data": {
+          "book": {
+            "_id": "<_id>",
+            "userId": "<userId>",
+            "title": "Dune",
+            "author": "Frank Herbert",
+            "genres": [
+              "Sci-Fi"
+            ],
+            "status": "reading",
+            "rating": 9,
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "__v": 0
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: bulk status",
+      "method": "POST",
+      "path": "/api/books/bulk-update-status",
+      "bug": "F7",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Bulk status update completed. 1 books updated, 0 failed.",
+        "data": {
+          "updated": 1,
+          "failed": 0
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: get after bulk",
+      "method": "GET",
+      "path": "/api/books/<id>",
+      "bug": "F7",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Book retrieved successfully",
+        "data": {
+          "book": {
+            "_id": "<_id>",
+            "userId": "<userId>",
+            "title": "Dune",
+            "author": "Frank Herbert",
+            "genres": [
+              "Sci-Fi"
+            ],
+            "status": "read",
+            "rating": 9,
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "__v": 0
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: check duplicates",
+      "method": "POST",
+      "path": "/api/books/check-duplicates",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Duplicate check completed",
+        "data": {
+          "duplicates": [
+            "\"Dune\" by Frank Herbert"
+          ],
+          "count": 1
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: batch add",
+      "method": "POST",
+      "path": "/api/books/batch-add",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Batch add completed. 1 books added, 1 duplicates skipped, 0 failed.",
+        "data": {
+          "added": 1,
+          "failed": 0,
+          "duplicates": 1,
+          "errors": [
+            "Duplicate book: \"Dune\" by Frank Herbert"
+          ],
+          "books": [
+            {
+              "userId": "<userId>",
+              "title": "Children of Dune",
+              "author": "Frank Herbert",
+              "genres": [
+                "Sci-Fi"
+              ],
+              "status": "read",
+              "rating": 9,
+              "_id": "<_id>",
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ]
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: no cookie",
+      "method": "GET",
+      "path": "/api/books",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Access token required",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "No access token provided"
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: delete",
+      "method": "DELETE",
+      "path": "/api/books/<id>",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Book deleted successfully",
+        "data": {},
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "books: delete again",
+      "method": "DELETE",
+      "path": "/api/books/<id>",
+      "status": 404,
+      "body": {
+        "success": false,
+        "message": "Book not found",
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "Book not found",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: create",
+      "method": "POST",
+      "path": "/api/movies",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Movie created successfully",
+        "data": {
+          "movie": {
+            "userId": "<userId>",
+            "title": "Heat",
+            "director": "Michael Mann",
+            "industry": "Hollywood",
+            "genres": [
+              "Crime"
+            ],
+            "status": "watched",
+            "rating": 8,
+            "_id": "<_id>",
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "completedOn": "<completedOn>",
+            "__v": 0,
+            "formattedRating": "8/10",
+            "id": "<id>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: create duplicate",
+      "method": "POST",
+      "path": "/api/movies",
+      "status": 409,
+      "body": {
+        "success": false,
+        "message": "Movie with this title and director already exists in your collection",
+        "error": {
+          "code": "DUPLICATE_RESOURCE",
+          "message": "Movie with this title and director already exists in your collection",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: create invalid",
+      "method": "POST",
+      "path": "/api/movies",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "industry",
+                "message": "Invalid enum value. Expected 'Hollywood' | 'Bollywood' | 'Bangla' | 'South Indian' | 'Foreign', received 'Mars'",
+                "code": "invalid_enum_value"
+              },
+              {
+                "field": "genres",
+                "message": "At least one genre is required",
+                "code": "too_small"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: list",
+      "method": "GET",
+      "path": "/api/movies",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movies retrieved successfully",
+        "data": {
+          "movies": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Heat",
+              "director": "Michael Mann",
+              "industry": "Hollywood",
+              "genres": [
+                "Crime"
+              ],
+              "status": "watched",
+              "rating": 8,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: list filtered",
+      "method": "GET",
+      "path": "/api/movies?status=watched&industry=Hollywood&sortBy=title&sortOrder=asc",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movies retrieved successfully",
+        "data": {
+          "movies": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Heat",
+              "director": "Michael Mann",
+              "industry": "Hollywood",
+              "genres": [
+                "Crime"
+              ],
+              "status": "watched",
+              "rating": 8,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: list search regex chars",
+      "method": "GET",
+      "path": "/api/movies?search=Se7en%20(1995",
+      "bug": "S1",
+      "status": 500,
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "error": {
+          "code": "INTERNAL_SERVER_ERROR",
+          "message": "Internal server error",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: stats",
+      "method": "GET",
+      "path": "/api/movies/stats",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movie statistics retrieved successfully",
+        "data": {
+          "stats": {
+            "total": 0,
+            "byStatus": {
+              "watched": 0,
+              "watching": 0,
+              "to watch": 0
+            },
+            "byIndustry": {
+              "Hollywood": 0,
+              "Bollywood": 0,
+              "Bangla": 0,
+              "South Indian": 0,
+              "Foreign": 0
+            },
+            "byGenre": {},
+            "averageRating": 0,
+            "recentlyCompleted": 0
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: search route",
+      "method": "GET",
+      "path": "/api/movies/search?search=heat",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Search query is required",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Search query is required",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: by status",
+      "method": "GET",
+      "path": "/api/movies/status/watched",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movies with status 'watched' retrieved successfully",
+        "data": {
+          "movies": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Heat",
+              "director": "Michael Mann",
+              "industry": "Hollywood",
+              "genres": [
+                "Crime"
+              ],
+              "status": "watched",
+              "rating": 8,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: by industry",
+      "method": "GET",
+      "path": "/api/movies/industry/Hollywood",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movies from Hollywood industry retrieved successfully",
+        "data": {
+          "movies": [
+            {
+              "_id": "<_id>",
+              "userId": "<userId>",
+              "title": "Heat",
+              "director": "Michael Mann",
+              "industry": "Hollywood",
+              "genres": [
+                "Crime"
+              ],
+              "status": "watched",
+              "rating": 8,
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0
+            }
+          ],
+          "pagination": {
+            "page": 1,
+            "limit": 20,
+            "total": 1,
+            "pages": 1,
+            "hasNext": false,
+            "hasPrev": false
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: get",
+      "method": "GET",
+      "path": "/api/movies/<id>",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movie retrieved successfully",
+        "data": {
+          "movie": {
+            "_id": "<_id>",
+            "userId": "<userId>",
+            "title": "Heat",
+            "director": "Michael Mann",
+            "industry": "Hollywood",
+            "genres": [
+              "Crime"
+            ],
+            "status": "watched",
+            "rating": 8,
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "completedOn": "<completedOn>",
+            "__v": 0,
+            "formattedRating": "8/10",
+            "id": "<id>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: get bad id",
+      "method": "GET",
+      "path": "/api/movies/not-an-id",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "error": {
+          "code": "VALIDATION_ERROR",
+          "message": "Request validation failed",
+          "details": {
+            "errors": [
+              {
+                "field": "id",
+                "message": "Invalid movie ID format",
+                "code": "invalid_string"
+              }
+            ]
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: update",
+      "method": "PUT",
+      "path": "/api/movies/<id>",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movie updated successfully",
+        "data": {
+          "movie": {
+            "_id": "<_id>",
+            "userId": "<userId>",
+            "title": "Heat",
+            "director": "Michael Mann",
+            "industry": "Hollywood",
+            "genres": [
+              "Crime"
+            ],
+            "status": "to watch",
+            "rating": 8,
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "__v": 0,
+            "formattedRating": "8/10",
+            "id": "<id>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: bulk status",
+      "method": "POST",
+      "path": "/api/movies/bulk-update-status",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Bulk update completed. 1 movies updated, 0 failed.",
+        "data": {
+          "updated": 1,
+          "failed": 0,
+          "errors": []
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: check duplicates",
+      "method": "POST",
+      "path": "/api/movies/check-duplicates",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Duplicate check completed",
+        "data": {
+          "duplicates": [
+            "\"Heat\" by Michael Mann"
+          ],
+          "count": 1
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: batch add",
+      "method": "POST",
+      "path": "/api/movies/batch-add",
+      "status": 201,
+      "body": {
+        "success": true,
+        "message": "Batch add completed. 1 movies added, 0 duplicates skipped, 0 failed.",
+        "data": {
+          "added": 1,
+          "failed": 0,
+          "duplicates": 0,
+          "errors": [],
+          "movies": [
+            {
+              "userId": "<userId>",
+              "title": "Collateral",
+              "director": "Michael Mann",
+              "industry": "Hollywood",
+              "genres": [
+                "Crime"
+              ],
+              "status": "watched",
+              "rating": 8,
+              "_id": "<_id>",
+              "createdAt": "<createdAt>",
+              "updatedAt": "<updatedAt>",
+              "completedOn": "<completedOn>",
+              "__v": 0,
+              "formattedRating": "8/10",
+              "id": "<id>"
+            }
+          ]
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "movies: delete",
+      "method": "DELETE",
+      "path": "/api/movies/<id>",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Movie deleted successfully",
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "openai search: no prompt",
+      "method": "POST",
+      "path": "/api/openai/search",
+      "status": 400,
+      "body": {
+        "success": false,
+        "message": "Search prompt is required and must be a string",
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "openai search: no cookie",
+      "method": "POST",
+      "path": "/api/openai/search",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Access token required",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "No access token provided"
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "logout: ok",
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "status": 200,
+      "setCookie": [
+        "accessToken=<value>; Path=/; Expires=<date>; HttpOnly; Secure; SameSite=Lax",
+        "refreshToken=<value>; Path=/api/auth/refresh; Expires=<date>; HttpOnly; Secure; SameSite=Lax"
+      ],
+      "body": {
+        "success": true,
+        "message": "Logout successful",
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "logout: no cookie",
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "bug": "F3",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Access token required",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "No access token provided"
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "deactivate: ok",
+      "method": "POST",
+      "path": "/api/users/deactivate",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Account deactivated successfully",
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "profile: after deactivate, old token",
+      "method": "GET",
+      "path": "/api/auth/profile",
+      "bug": "S2",
+      "status": 200,
+      "body": {
+        "success": true,
+        "message": "Profile retrieved successfully",
+        "data": {
+          "user": {
+            "_id": "<_id>",
+            "email": "baseline@example.com",
+            "firstName": "Basey",
+            "lastName": "Line",
+            "isActive": false,
+            "emailVerified": false,
+            "preferences": {
+              "defaultView": "list",
+              "itemsPerPage": 20,
+              "theme": "light",
+              "language": "en",
+              "timezone": "UTC"
+            },
+            "createdAt": "<createdAt>",
+            "updatedAt": "<updatedAt>",
+            "lastLogin": "<lastLogin>"
+          }
+        },
+        "timestamp": "<timestamp>"
+      }
+    },
+    {
+      "name": "login: deactivated, wrong password",
+      "method": "POST",
+      "path": "/api/auth/login",
+      "bug": "S3",
+      "status": 401,
+      "body": {
+        "success": false,
+        "message": "Account is deactivated",
+        "error": {
+          "code": "AUTHENTICATION_ERROR",
+          "message": "Account is deactivated",
+          "details": {}
+        },
+        "timestamp": "<timestamp>"
+      }
+    }
+  ]
+}
