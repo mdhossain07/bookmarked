@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phase 0 is committed. Phase 1 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 and 1 are committed. Phase 2 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -223,31 +223,44 @@ Done when: the branch exists and the route list is recorded. Both are done.
 
 Done when: `yarn dev` shows the placeholder page with the Tailwind theme, `yarn build` passes, and `yarn type-check` passes. All three pass.
 
-### Phase 2: Server foundation
+### Phase 2: Server foundation (done, waits for review)
 
-This phase replaces what Express middleware did. Nothing is visible to users yet.
+This phase replaces what Express middleware did. Nothing is visible to users yet. Every file in `src/server/` imports `server-only`, so a client component cannot import it by mistake.
 
-1. `src/server/env.ts`: a Zod schema for `MONGODB_URI`, `JWT_SECRET` (minimum 32 characters, S5), `JWT_EXPIRES_IN` (default `7d`), `OPENAI_API_KEY` (optional), `OPENAI_MODEL` (optional). Parse once on first use. On failure, throw an error that names the variables (V5). Next.js loads `.env` files, so `dotenv` goes away.
-2. `src/server/db.ts`: cache the connection promise on `globalThis`, so hot reload and warm functions reuse it (V1). Use `bufferCommands: false` and a small `maxPoolSize` (5). On Vercel, call `attachDatabasePool()` from `@vercel/functions` with the Mongoose client. If a function instance stops, this closes its idle connections.
-3. Models: move `User`, `Book`, `Movie` to `src/server/models/`. Export with `mongoose.models.X ?? mongoose.model(...)` (M6).
-4. `src/server/http/errors.ts`: keep `ApiError`. Add `toErrorResponse(error)`. It maps `ApiError`, `ZodError`, Mongoose `ValidationError` and `CastError`, and duplicate key `11000` to the same `ApiResponse` JSON as today. Do not log request bodies (S6).
-5. `src/server/http/route.ts`: one wrapper that every handler uses. It opens the database, runs the handler, and turns errors into responses. This replaces `asyncHandler`, `errorHandler`, and `notFoundHandler`.
+1. `src/server/env.ts`: a Zod schema for these variables:
+   - `NODE_ENV`.
+   - `MONGODB_URI`, which must start with `mongodb://` or `mongodb+srv://`.
+   - `JWT_SECRET`, at least 32 characters (S5).
+   - `OPENAI_API_KEY` (optional) and `OPENAI_MODEL` (default `gpt-4o`, M8).
 
-   ```ts
-   export const GET = route(async (req) => {
-     const user = await requireUser();
-     return ok(await bookService.getBookStats(user.id));
-   });
-   ```
+   `env()` parses on first use. On failure, it throws an error that names each bad variable (V5). An empty value counts as unset. Next.js loads `.env` files, so `dotenv` is not needed.
+2. `src/server/db.ts`: `connectDb()` caches the connection promise on `globalThis` (V1). Options: `bufferCommands: false`, `maxPoolSize: 5`, `serverSelectionTimeoutMS: 5000`, and `maxIdleTimeMS: 10000`. `attachDatabasePool()` from `@vercel/functions` needs `maxIdleTimeMS` to track a MongoDB pool, and it does nothing outside Vercel. If the first connection fails, the cache is cleared, so the next request tries again.
+3. Models: `User`, `Book`, and `Movie` are in `src/server/models/`. The schemas are unchanged. If `mongoose.models.X` exists, the export reuses it (M6).
+4. `src/server/http/errors.ts`: `ApiError` keeps the Express signature. It adds an optional fifth argument `reason`. If `error.message` must differ from `message`, `reason` holds it. `toErrorResponse()` maps `ApiError`, `ZodError`, Mongoose `ValidationError` and `CastError`, and duplicate key `11000` to the Express error JSON. It logs unexpected errors without the request body (S6).
+5. `src/server/http/respond.ts`: `ok()` and `fail()` build the shared `ApiResponse` JSON.
+6. `src/server/http/route.ts`: `route()` wraps every handler. It opens the database, runs the handler, and turns errors into responses. `{ db: false }` skips the database for handlers like logout.
+7. `src/server/http/validate.ts`: `parseBody()`, `parseQuery()`, and `parseParams()`. An empty body counts as `{}`, as with `express.json()`. A repeated query key becomes an array.
+8. Auth, split in two files, so `proxy.ts` (Phase 4) can read a token without loading Mongoose:
+   - `src/server/auth/token.ts`: sign the JWT and make sure that it is valid, with `jose` (HS256). No database and no `next/headers`.
+   - `src/server/auth/session.ts`: `createSession()`, `clearSession()`, and `requireUser()`. The cookie is `accessToken`: `httpOnly`, `secure` in production, `sameSite: "lax"`, `path: "/"`, 7 days. `requireUser()` loads the user and rejects a missing or inactive account (S2).
+9. `src/server/auth/password.ts`: `bcryptjs` 3, 12 rounds. Version 3 reads the hashes that version 2 wrote.
+10. `src/app/api/health/route.ts`: 200 with `{ db: "connected" }`. If the database is not connected, 503 with `DATABASE_ERROR`.
 
-6. `src/server/http/validate.ts`: `parseBody(req, schema)` and `parseQuery(req, schema)`. `parseQuery` must turn repeated keys into arrays (`?status=read&status=reading`), as Express did, because `BookQuerySchema` accepts arrays.
-7. `src/server/auth/session.ts`: replace `jsonwebtoken` with `jose`. It works in both the Node.js runtime and `proxy.ts`. Functions:
-   - `createSession(user)` sets one `accessToken` cookie: `httpOnly`, `secure` in production, `sameSite: "lax"`, `path: "/"`, 7 days.
-   - `clearSession()` deletes it.
-   - `requireUser()` reads the cookie with `await cookies()` and makes sure that the token is valid. Then it loads the user. If the user is missing or inactive, it throws 401 (S2).
-8. `src/server/auth/password.ts`: keep `bcryptjs`, 12 rounds.
+Changes from the first version of this plan:
 
-Done when: a test route `GET /api/health` returns `{ success: true, db: "connected" }` locally.
+- `JWT_EXPIRES_IN` and `BCRYPT_ROUNDS` are constants, not environment variables. One fixed session length keeps the token and the cookie in step.
+- The `Authorization: Bearer` header is no longer accepted. The client sends only the cookie.
+- New packages: `mongoose` 8.24, `jose` 6, `bcryptjs` 3, `@vercel/functions` 3, `server-only`.
+
+How it was tested: a temporary route (deleted before review) ran against a local MongoDB.
+
+- Health: 200 when connected. 503 after the database stops. 200 again after it restarts, without a server restart.
+- Session: no cookie gives 401 "No access token provided". A bad token gives 401 "Invalid token". After sign-in, `requireUser()` returns the user. After deactivation, the same cookie gives 401 (S2). Sign-out sends `Max-Age=0`.
+- Validation: the error JSON matches the baseline shape. `?status=read&status=reading` becomes an array. A body that is not JSON gives 400 "Invalid JSON body".
+- A thrown `Error` gives the generic 500 JSON and one log line, without the body.
+- Environment: a short `JWT_SECRET` and a `postgres://` URI each give a message that names the variable.
+
+Done when: `GET /api/health` returns `{ db: "connected" }` locally, and type-check and build pass. All pass.
 
 ### Phase 3: Port the API
 
@@ -440,7 +453,7 @@ There is no `CLAUDE.md` and no plan file in the repository today, only `Bookmark
 3. Rewrite `deployment.md` for one Vercel project (Phase 11).
 4. `Bookmarked-PRD.md`: update "Technical Implementation Plan" and "Project Roadmap & Milestones". Replace Express and Vite with the Next.js App Router and Route Handlers. Keep the product sections as they are.
 5. Delete `packages/bookmarked-types/MAINTENANCE.md` (the package no longer exists).
-6. `.env.example`: `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `OPENAI_API_KEY`, `OPENAI_MODEL` (M4).
+6. `.env.example`: `MONGODB_URI`, `JWT_SECRET`, `OPENAI_API_KEY`, `OPENAI_MODEL` (M4).
 7. Mark this plan as done, with the date.
 
 ### Phase 11: Deploy to Vercel

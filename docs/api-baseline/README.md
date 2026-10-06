@@ -50,4 +50,6 @@ These are allowed, because Next.js or the plan changes them on purpose:
 
 - `welcome` (`GET /`): Next.js serves the app page there. The health route moves to `GET /api/health`.
 - `unknown route`: the Express message says `Route GET / not found` for every path (F12). The Next.js 404 message must name the real path.
-- The cookie changes from `Max-Age=86400` (1 day) to 7 days (F4).
+- The cookie changes from `Max-Age=86400` (1 day) to 7 days (F4), and `SameSite=Lax` is written as `SameSite=lax`.
+- Auth errors (401) now have `details: {}`. Express left `details` out for these.
+- The `Authorization: Bearer` header is no longer accepted. The baseline does not use it.
