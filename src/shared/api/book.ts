@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { BookDocument, BookStats } from "../database/book";
 
 // Status enum schema
 export const BookStatusSchema = z.enum(["read", "reading", "will read"]);
@@ -91,94 +90,7 @@ export const BookQuerySchema = z.object({
   search: z.string().min(1).max(100).trim().optional(),
 });
 
-// Book ID parameter schema
-export const BookIdParamSchema = z.object({
-  id: z.string().min(1, "Book ID is required"),
-});
-
-// Bulk update book status schema
-export const BulkUpdateBookStatusSchema = z.object({
-  bookIds: z
-    .array(z.string().min(1))
-    .min(1, "At least one book ID is required"),
-  status: BookStatusSchema,
-});
-
-// Batch add books schema
-export const BatchAddBooksSchema = z.object({
-  books: z
-    .array(CreateBookSchema)
-    .min(1, "At least one book is required")
-    .max(50, "Cannot add more than 50 books at once"),
-});
-
 // Export request/response types
 export type CreateBookRequest = z.infer<typeof CreateBookSchema>;
 export type UpdateBookRequest = z.infer<typeof UpdateBookSchema>;
 export type BookQueryRequest = z.infer<typeof BookQuerySchema>;
-export type BookIdParam = z.infer<typeof BookIdParamSchema>;
-export type BulkUpdateBookStatusRequest = z.infer<
-  typeof BulkUpdateBookStatusSchema
->;
-export type BatchAddBooksRequest = z.infer<typeof BatchAddBooksSchema>;
-
-// API Response interfaces
-export interface BookResponse {
-  success: boolean;
-  message: string;
-  data: {
-    book: BookDocument;
-  };
-  timestamp: string;
-}
-
-export interface BooksListResponse {
-  success: boolean;
-  message: string;
-  data: {
-    books: BookDocument[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      pages: number;
-      hasNext: boolean;
-      hasPrev: boolean;
-    };
-    stats?: BookStats;
-  };
-  timestamp: string;
-}
-
-export interface BookStatsResponse {
-  success: boolean;
-  message: string;
-  data: {
-    stats: BookStats;
-  };
-  timestamp: string;
-}
-
-export interface BulkUpdateBookResponse {
-  success: boolean;
-  message: string;
-  data: {
-    updated: number;
-    failed: number;
-    errors?: string[];
-  };
-  timestamp: string;
-}
-
-export interface BatchAddBooksResponse {
-  success: boolean;
-  message: string;
-  data: {
-    added: number;
-    failed: number;
-    duplicates: number;
-    errors?: string[];
-    books?: BookDocument[];
-  };
-  timestamp: string;
-}

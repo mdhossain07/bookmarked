@@ -20,27 +20,6 @@ export interface BookDocument extends Book {
   durationSinceCompleted?: string; // e.g., "2 days ago"
 }
 
-// Book filters for search and filtering operations
-export interface BookFilters {
-  userId?: string;
-  genres?: string | string[];
-  status?: Book['status'] | Book['status'][];
-  rating?: {
-    min?: number;
-    max?: number;
-  };
-  author?: string;
-  completedOn?: {
-    from?: Date;
-    to?: Date;
-  };
-  createdAt?: {
-    from?: Date;
-    to?: Date;
-  };
-  search?: string; // Search in title, author, review
-}
-
 // Book statistics interface
 export interface BookStats {
   total: number;
@@ -53,42 +32,4 @@ export interface BookStats {
   averageRating?: number;
   totalReadTime?: number; // If we track reading duration
   recentlyCompleted: number; // Books completed in last 30 days
-}
-
-// Book sort options
-export type BookSortField = 
-  | 'title'
-  | 'author'
-  | 'rating'
-  | 'completedOn'
-  | 'createdAt'
-  | 'updatedAt';
-
-export type BookSortOrder = 'asc' | 'desc';
-
-export interface BookSort {
-  field: BookSortField;
-  order: BookSortOrder;
-}
-
-// Book query options for pagination and filtering
-export interface BookQueryOptions {
-  page?: number;
-  limit?: number;
-  sort?: BookSort;
-  filters?: BookFilters;
-}
-
-// Book aggregation result
-export interface BookQueryResult {
-  books: BookDocument[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-  stats?: BookStats;
 }

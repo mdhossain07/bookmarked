@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { UserDocument } from "../database/user";
 
 // Zod validation schemas
 export const RegisterSchema = z
@@ -52,44 +51,3 @@ export type RegisterRequest = z.infer<typeof RegisterSchema>;
 export type LoginRequest = z.infer<typeof LoginSchema>;
 export type UpdateProfileRequest = z.infer<typeof UpdateProfileSchema>;
 export type ChangePasswordRequest = z.infer<typeof ChangePasswordSchema>;
-
-export interface AuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: UserDocument;
-    token: string;
-    expiresIn: string;
-  };
-}
-
-// New response type for HTTP-only cookie authentication
-export interface CookieAuthResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: UserDocument;
-  };
-}
-
-export interface LoginResponse extends AuthResponse {}
-export interface RegisterResponse extends AuthResponse {}
-
-// Cookie-based authentication responses
-export interface CookieLoginResponse extends CookieAuthResponse {}
-export interface CookieRegisterResponse extends CookieAuthResponse {}
-
-export interface ProfileResponse {
-  success: boolean;
-  message: string;
-  data: {
-    user: UserDocument;
-  };
-}
-
-export interface TokenPayload {
-  userId: string;
-  email: string;
-  iat: number;
-  exp: number;
-}

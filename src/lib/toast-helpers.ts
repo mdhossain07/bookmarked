@@ -1,6 +1,6 @@
 import { toast } from "@/hooks/use-toast";
 
-export const showSuccessToast = (title: string, description?: string) => {
+const showSuccessToast = (title: string, description?: string) => {
   toast({
     variant: "success",
     title,
@@ -8,7 +8,7 @@ export const showSuccessToast = (title: string, description?: string) => {
   });
 };
 
-export const showErrorToast = (title: string, description?: string) => {
+const showErrorToast = (title: string, description?: string) => {
   toast({
     variant: "destructive",
     title,
@@ -16,7 +16,7 @@ export const showErrorToast = (title: string, description?: string) => {
   });
 };
 
-export const showInfoToast = (title: string, description?: string) => {
+const showInfoToast = (title: string, description?: string) => {
   toast({
     variant: "default",
     title,

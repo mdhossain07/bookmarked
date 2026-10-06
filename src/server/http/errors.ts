@@ -21,7 +21,7 @@ export class ApiError extends Error {
   }
 }
 
-/** Maps any thrown value to the error JSON the Express error handler sent. */
+/** Maps any thrown value to the shared `ApiResponse` error JSON. */
 export function toErrorResponse(error: unknown): NextResponse {
   if (error instanceof ApiError) {
     return fail(error.statusCode, error.message, error.code, {

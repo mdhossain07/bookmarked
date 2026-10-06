@@ -21,28 +21,6 @@ export interface MovieDocument extends Movie {
   durationSinceCompleted?: string; // e.g., "2 days ago"
 }
 
-// Movie filters for search and filtering operations
-export interface MovieFilters {
-  userId?: string;
-  industry?: Movie["industry"] | Movie["industry"][];
-  genres?: string | string[];
-  status?: Movie["status"] | Movie["status"][];
-  rating?: {
-    min?: number;
-    max?: number;
-  };
-  director?: string;
-  completedOn?: {
-    from?: Date;
-    to?: Date;
-  };
-  createdAt?: {
-    from?: Date;
-    to?: Date;
-  };
-  search?: string; // Search in title, director, review
-}
-
 // Movie statistics interface
 export interface MovieStats {
   total: number;
@@ -62,42 +40,4 @@ export interface MovieStats {
   averageRating?: number;
   totalWatchTime?: number; // If we track movie duration
   recentlyCompleted: number; // Movies completed in last 30 days
-}
-
-// Movie sort options
-export type MovieSortField =
-  | "title"
-  | "director"
-  | "rating"
-  | "completedOn"
-  | "createdAt"
-  | "updatedAt";
-
-export type MovieSortOrder = "asc" | "desc";
-
-export interface MovieSort {
-  field: MovieSortField;
-  order: MovieSortOrder;
-}
-
-// Movie query options for pagination and filtering
-export interface MovieQueryOptions {
-  page?: number;
-  limit?: number;
-  sort?: MovieSort;
-  filters?: MovieFilters;
-}
-
-// Movie aggregation result
-export interface MovieQueryResult {
-  movies: MovieDocument[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-  stats?: MovieStats;
 }

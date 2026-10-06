@@ -28,7 +28,7 @@ async function getData<T>(url: string, params?: object): Promise<T> {
 }
 
 // Every key starts with the resource, so invalidating ["books"] refreshes lists, stats, and authors.
-export const mediaKeys = {
+const mediaKeys = {
   all: (resource: Resource) => [resource] as const,
   list: (resource: Resource, params: MediaListParams) => [resource, "list", compact(params)] as const,
   stats: (resource: Resource) => [resource, "stats"] as const,

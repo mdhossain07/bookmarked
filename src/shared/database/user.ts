@@ -24,13 +24,3 @@ export interface UserPreferences {
 export interface UserDocument extends Omit<User, 'password'> {
   fullName: string; // Computed field
 }
-
-// User profile for public display
-export interface UserProfile {
-  _id: string;
-  firstName: string;
-  lastName?: string;
-  fullName: string;
-  createdAt: Date;
-  preferences: Pick<UserPreferences, 'defaultView' | 'theme'>;
-}

@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { ErrorCodes, HttpStatus } from "@/shared";
 import { ApiError } from "./errors";
 
-/** Parses the JSON body with `schema`. An empty body counts as `{}`, as `express.json()` did. */
+/** Parses the JSON body with `schema`. An empty body counts as `{}`, so schema errors name the missing fields. */
 export async function parseBody<S extends z.ZodTypeAny>(req: Request, schema: S): Promise<z.output<S>> {
   const text = await req.text();
   let raw: unknown = {};
@@ -37,7 +37,7 @@ export async function parseParams<S extends z.ZodTypeAny>(
 }
 
 /** Escapes regex metacharacters so user text matches literally (S1: `C++`, `Rabbit?`). */
-export function escapeRegex(text: string): string {
+function escapeRegex(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 

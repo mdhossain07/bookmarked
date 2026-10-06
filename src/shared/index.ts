@@ -1,5 +1,4 @@
 export * from "./database/user";
-export * from "./database/genre";
 export * from "./database/book";
 export * from "./database/movie";
 

@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { MovieDocument, MovieStats } from "../database/movie";
 
 // Industry enum schema
 export const MovieIndustrySchema = z.enum([
@@ -104,103 +103,7 @@ export const MovieQuerySchema = z.object({
   search: z.string().min(1).max(100).trim().optional(),
 });
 
-// Movie ID parameter schema
-export const MovieIdParamSchema = z.object({
-  id: z
-    .string()
-    .min(1, "Movie ID is required")
-    .regex(/^[0-9a-fA-F]{24}$/, "Invalid movie ID format"),
-});
-
-// Bulk operations schema
-export const BulkUpdateMovieStatusSchema = z.object({
-  movieIds: z
-    .array(z.string().regex(/^[0-9a-fA-F]{24}$/))
-    .min(1, "At least one movie ID is required")
-    .max(50, "Cannot update more than 50 movies at once"),
-  status: MovieStatusSchema,
-  completedOn: z
-    .string()
-    .datetime()
-    .optional()
-    .transform((val) => (val ? new Date(val) : undefined)),
-});
-
-// Batch add movies schema
-export const BatchAddMoviesSchema = z.object({
-  movies: z
-    .array(CreateMovieSchema)
-    .min(1, "At least one movie is required")
-    .max(50, "Cannot add more than 50 movies at once"),
-});
-
 // Export request/response types
 export type CreateMovieRequest = z.infer<typeof CreateMovieSchema>;
 export type UpdateMovieRequest = z.infer<typeof UpdateMovieSchema>;
 export type MovieQueryRequest = z.infer<typeof MovieQuerySchema>;
-export type MovieIdParam = z.infer<typeof MovieIdParamSchema>;
-export type BulkUpdateMovieStatusRequest = z.infer<
-  typeof BulkUpdateMovieStatusSchema
->;
-export type BatchAddMoviesRequest = z.infer<typeof BatchAddMoviesSchema>;
-
-// API Response interfaces
-export interface MovieResponse {
-  success: boolean;
-  message: string;
-  data: {
-    movie: MovieDocument;
-  };
-  timestamp: string;
-}
-
-export interface MoviesListResponse {
-  success: boolean;
-  message: string;
-  data: {
-    movies: MovieDocument[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      pages: number;
-      hasNext: boolean;
-      hasPrev: boolean;
-    };
-    stats?: MovieStats;
-  };
-  timestamp: string;
-}
-
-export interface MovieStatsResponse {
-  success: boolean;
-  message: string;
-  data: {
-    stats: MovieStats;
-  };
-  timestamp: string;
-}
-
-export interface BulkUpdateResponse {
-  success: boolean;
-  message: string;
-  data: {
-    updated: number;
-    failed: number;
-    errors?: string[];
-  };
-  timestamp: string;
-}
-
-export interface BatchAddMoviesResponse {
-  success: boolean;
-  message: string;
-  data: {
-    added: number;
-    failed: number;
-    duplicates: number;
-    errors?: string[];
-    movies?: MovieDocument[];
-  };
-  timestamp: string;
-}

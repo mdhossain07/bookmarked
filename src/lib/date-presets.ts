@@ -33,7 +33,7 @@ export interface DateBounds {
 }
 
 /** Start and end of a preset in local time, or the custom range when `preset` is "custom". */
-export function presetRange(preset: string, custom?: DateBounds): DateBounds | undefined {
+function presetRange(preset: string, custom?: DateBounds): DateBounds | undefined {
   const now = new Date();
   switch (preset) {
     case "today":

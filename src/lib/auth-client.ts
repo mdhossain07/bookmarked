@@ -29,7 +29,6 @@ export async function getProfile(): Promise<UserDocument> {
   return response.data.data!.user;
 }
 
-// F5: the Express client called /auth/profile and /auth/change-password, which never existed.
 export async function updateProfile(data: UpdateProfileRequest): Promise<UserDocument> {
   const response = await apiClient.put<UserResponse>("/users/update-profile", data);
   return response.data.data!.user;

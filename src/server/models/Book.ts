@@ -226,4 +226,3 @@ bookSchema.statics["getBookStats"] = function (userId: string) {
 export const BookModel =
   (mongoose.models.Book as BookModel | undefined) ??
   mongoose.model<BookDoc, BookModel>("Book", bookSchema);
-export default BookModel;

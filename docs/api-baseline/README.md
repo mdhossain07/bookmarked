@@ -6,14 +6,26 @@
 
 Recorded on 2026-10-06 from `main` at commit `3a69590`, against an empty local MongoDB.
 
+The Express code is not in the tree after Phase 5. To record it again, use a worktree of that commit.
+
 1. Start an empty MongoDB, for example on port 27027.
-2. Start the Express API on port 3099 with test values:
+2. Make a worktree of the recorded commit and install its packages:
 
    ```bash
-   cd backend && NODE_ENV=production PORT=3099 MONGODB_URI=mongodb://127.0.0.1:27027/bookmarked-baseline JWT_SECRET=baseline-test-secret-not-real-0123456789 OPENAI_API_KEY=sk-baseline-invalid npx tsx src/server.ts
+   git worktree add ../bookmarked-express 3a69590
    ```
 
-3. Run the script and save the output:
+   ```bash
+   cd ../bookmarked-express && yarn install
+   ```
+
+3. Start the Express API on port 3099 with test values:
+
+   ```bash
+   cd ../bookmarked-express/backend && NODE_ENV=production PORT=3099 MONGODB_URI=mongodb://127.0.0.1:27027/bookmarked-baseline JWT_SECRET=baseline-test-secret-not-real-0123456789 OPENAI_API_KEY=sk-baseline-invalid npx tsx src/server.ts
+   ```
+
+4. In this repository, run the script and save the output:
 
    ```bash
    BASE_URL=http://localhost:3099 node scripts/api-baseline.mjs > docs/api-baseline/express.json

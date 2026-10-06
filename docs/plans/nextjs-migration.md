@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 3 are committed. Phase 4 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 4 are committed. Phase 5 is done and waits for review. Stage A (migration) is complete with Phase 5. The other phases are not started.
 
 ## Overview
 
@@ -224,7 +224,7 @@ Done when: the branch exists and the route list is recorded. Both are done.
 4. The root `package.json` has no workspaces. Scripts are `dev`, `build`, `start`, and `type-check`. Phase 9 adds `lint` and `test` with their configuration. `"engines"` is `{ "node": ">=20.9.0" }`. `.yarnrc` is deleted, because its only line was `ignore-engines true` (S8).
 5. Versions: Next.js 16.3.8, React 19.3.0, Zod 3.25, Tailwind 3.4. TypeScript stays at 5.9, because TypeScript 7 (the new native compiler) is not yet tested with Next.js. Upgrade it in a separate task.
 6. `.gitignore`: `public` is no longer ignored, because Next.js serves static files from `public/`. `next-env.d.ts` and `.vercel` are ignored.
-7. `backend/`, `frontend/`, and `packages/` stay in the tree as source for the port. Without workspaces, the old apps do not install from the root. To run the old app, use a worktree of `main`: `git worktree add ../bookmarked-main main`.
+7. `backend/`, `frontend/`, and `packages/` stayed in the tree as source for the port until Phase 5. Without workspaces, the old apps did not install from the root.
 
 Done when: `yarn dev` shows the placeholder page with the Tailwind theme, `yarn build` passes, and `yarn type-check` passes. All three pass.
 
@@ -383,21 +383,39 @@ Not fixed in this phase:
 
 Done when: every user flow works in the new app. All pass.
 
-### Phase 5: Remove the old code
+### Phase 5: Remove the old code (done, waits for review)
 
-1. Delete `backend/`, `frontend/`, `packages/`, the root `tsconfig.json` references, and the workspace entries.
-2. Remove dead code (M3, D3):
-   - Endpoints that no page calls: `batch-add`, `check-duplicates`, `bulk-update-status`, `search`, `status/:status`, `industry/:industry`, `generate-story`, `latest-update`.
-   - Modules: `aiResponseParser.ts` and its test, `SelectableMediaItem.tsx`, `useAuthenticatedFetch.ts`, `shared/api/ai.ts`, `shared/ai-validation.ts`, `scripts/openAI.script.ts`.
-   - If the AI import feature comes back later, you can get them from `git log`.
-3. Remove the dependencies that only Express or Vite used, and their `@types/*` packages:
-   - Express: `express`, `cors`, `helmet`, `morgan`, `compression`, `cookie-parser`.
-   - Server tools: `jsonwebtoken`, `dotenv`, `nodemon`, `tsx`, `ts-node`.
-   - Client: `vite`, `@vitejs/plugin-react`, `react-router-dom`.
-   - Unused (M2): `kysely`, `mongodb`, `nodemailer`, `concurrently`.
-4. Run `yarn install` and commit the new `yarn.lock` with the rest of the change.
+What was done:
 
-Done when: `yarn build` passes and `git grep -n "express\|react-router\|VITE_"` returns nothing in source files.
+1. `backend/`, `frontend/`, and `packages/` are deleted: 105 files. `tsconfig.json` no longer excludes them.
+2. Most of the planned removals were already done, because Phases 1 to 4 did not copy dead code:
+   - The D3 endpoints were not ported in Phase 3.
+   - `aiResponseParser.ts`, `SelectableMediaItem.tsx`, `useAuthenticatedFetch.ts`, the AI types, and `openAI.script.ts` were not copied.
+   - The root `package.json` never had the Express, Vite, or unused packages (M2).
+3. `knip`, a tool that finds unused files, exports, and packages, found more dead code in `src/shared`. These are removed:
+   - Response interfaces and request types for removed routes, for example `BooksListResponse` and `BatchAddBooksRequest`.
+   - Old pagination, sort, and filter types, and `UserProfile`.
+   - `database/genre.ts`, which nothing imports.
+   - The duplicate default export of `BookModel`.
+   - `csstype`, a dev package that only silenced an install warning.
+4. Helpers that only their own file uses are no longer exported.
+5. Comments that described the Express code are reworded.
+6. `docs/api-baseline/README.md` now records the baseline again from a worktree of commit `3a69590`.
+
+Kept on purpose:
+
+- `updateProfile()` and `changePassword()` in `src/lib/auth-client.ts`. The API routes exist, and a profile page can use them.
+- The unused parts of the shadcn/ui components, such as `DialogFooter`. They are standard parts of those files.
+- `scripts/api-baseline.mjs`, the API check tool.
+
+How it was tested:
+
+- Type-check and build pass.
+- The source has no `express`, `react-router`, `VITE_`, `bookmarked-types`, or `import.meta.env`.
+- The API baseline ran against a fresh build and gave a file that is the same as `nextjs.json` from Phase 3.
+- Signed out, `/dashboard` and `/books` redirect to `/login?from=...`.
+
+Done when: `yarn build` passes and the old stack names are gone from the source. All pass.
 
 ### Phase 6: Design system
 
