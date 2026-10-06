@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phase 0 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phase 0 is committed. Phase 1 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -62,31 +62,31 @@ The work has three stages. Each phase ends at a review stop: I finish the phase,
 | Stage | Phase | Branch | Result you can see |
 |---|---|---|---|
 | A. Migration | 0. Preparation | `chore-nextjs-p0-baseline` | This plan and a recorded API baseline. |
-| A. Migration | 1. Create the Next.js app | `refactor-nextjs-p1-scaffold` | An empty Next.js app runs next to the old apps. |
-| A. Migration | 2. Server foundation | `refactor-nextjs-p2-server` | `GET /api/health` answers with the database status. |
-| A. Migration | 3. Port the API | `refactor-nextjs-p3-api` | All API routes work in Next.js, with the security fixes. |
-| A. Migration | 4. Port the pages | `refactor-nextjs-p4-pages` | The full app works in Next.js, with the old look. |
-| A. Migration | 5. Remove the old code | `chore-nextjs-p5-remove-legacy` | `backend/`, `frontend/`, and `packages/` are gone. |
-| B. Design | 6. Design system | `feat-design-p6-tokens` | New palette, typefaces, and color tokens on every page. |
-| B. Design | 7. Components and motion | `feat-design-p7-components` | New layout, cards, skeletons, and small CSS motion. |
-| B. Design | 8. Three.js scene | `feat-design-p8-three-scene` | Slow 3D background on login, register, and dashboard. |
-| C. Launch | 9. Tests and quality gates | `chore-nextjs-p9-quality` | Lint, tests, contrast, and performance pass. |
-| C. Launch | 10. Documentation and Claude files | `chore-nextjs-p10-docs` | `CLAUDE.md`, README, deployment guide, PRD updated. |
-| C. Launch | 11. Deploy to Vercel | `chore-nextjs-p11-deploy` | One Production URL. Old Vercel projects removed. |
+| A. Migration | 1. Create the Next.js app | `refactor-nextjs-app-api` | An empty Next.js app runs. |
+| A. Migration | 2. Server foundation | `refactor-nextjs-app-api` | `GET /api/health` answers with the database status. |
+| A. Migration | 3. Port the API | `refactor-nextjs-app-api` | All API routes work in Next.js, with the security fixes. |
+| A. Migration | 4. Port the pages | `refactor-nextjs-pages` | The full app works in Next.js, with the old look. |
+| A. Migration | 5. Remove the old code | `refactor-nextjs-pages` | `backend/`, `frontend/`, and `packages/` are gone. |
+| B. Design | 6. Design system | `feat-design-refresh` | New palette, typefaces, and color tokens on every page. |
+| B. Design | 7. Components and motion | `feat-design-refresh` | New layout, cards, skeletons, and small CSS motion. |
+| B. Design | 8. Three.js scene | `feat-design-refresh` | Slow 3D background on login, register, and dashboard. |
+| C. Launch | 9. Tests and quality gates | `chore-nextjs-launch` | Lint, tests, contrast, and performance pass. |
+| C. Launch | 10. Documentation and Claude files | `chore-nextjs-launch` | `CLAUDE.md`, README, deployment guide, PRD updated. |
+| C. Launch | 11. Deploy to Vercel | `chore-nextjs-launch` | One Production URL. Old Vercel projects removed. |
 
 Stage A comes before stage B on purpose. The design work then touches each page one time, in its final Next.js form.
 
 ### Branches
 
-The project has no ClickUp task, so the branch names have no task ID. They use `<type>-<feature-name>` with the phase number.
+The project has no ClickUp task, so the branch names have no task ID. They use `<type>-<feature-name>`.
 
-The branches are a stack. Each phase branch starts from the branch of the phase before it. Phase 0 starts from `main`. Git Town manages the stack (`git-town.main-branch` is `main` for this repository):
+There are five branches. Phase 0 has its own branch. After that, each branch holds two or three phases. The branches are a stack: each branch starts from the branch before it, and Phase 0 starts from `main`. Git Town manages the stack (`git-town.main-branch` is `main` for this repository):
 
 - `git town hack chore-nextjs-p0-baseline` created the first branch from `main`.
-- When the next phase starts, `git town append <next-branch>` creates the child branch.
+- `git town append <next-branch>` creates the next branch on top of the current one.
 - `git town sync --stack` brings changes down the stack after a review fix in a lower branch.
 
-Each branch gets its own pull request against its parent branch, so each review shows one phase only. I do not create the next branch, commit, push, or open a pull request before you approve the current phase.
+Each phase is one commit or more on its branch. I stop after each phase for your review, and I commit only after you approve. Each branch gets one pull request against its parent branch. I do not push or open a pull request without your go-ahead.
 
 ## Issues found in the current code
 
@@ -206,15 +206,22 @@ bookmarked/
 
 Done when: the branch exists and the route list is recorded. Both are done.
 
-### Phase 1: Create the Next.js app
+### Phase 1: Create the Next.js app (done, waits for review)
 
-1. Create the Next.js 16 app at the repository root with TypeScript, the App Router, the `src/` directory, and the `@/*` alias.
-2. Copy `tailwind.config.js`, `postcss.config.js`, and `index.css` (as `src/app/globals.css`). Keep Tailwind 3 (D6).
-3. Move `packages/bookmarked-types/src/*` to `src/shared/`. Change the `bookmarked-types` imports to `@/shared`. Delete the schemas that nothing imports (M5). Make `lastName` optional in `RegisterSchema` (F10).
-4. Replace the root `package.json`: no workspaces. Scripts are `dev`, `build`, `start`, `lint`, `type-check`, `test`. Set `"engines": { "node": ">=20.9" }`. Remove `ignore-engines` from `.yarnrc` (S8).
-5. Keep `backend/` and `frontend/` in place for now. You can run the old app next to the new one to compare.
+1. The Next.js 16 app is at the repository root: `src/app/layout.tsx`, a placeholder `src/app/page.tsx`, `next.config.ts`, and `tsconfig.json` with the `@/*` alias. I wrote the files by hand, because `create-next-app` refuses a folder that is not empty.
+2. `tailwind.config.ts` and `postcss.config.mjs` come from `frontend/`. `src/app/globals.css` is a copy of `frontend/src/index.css`. Tailwind stays at version 3 (D6).
+3. The used parts of `packages/bookmarked-types/src/` are copied to `src/shared/`, with the `.js` import endings removed:
+   - Copied: `database/{user,genre,book,movie}.ts` and `api/{auth,book,movie,common}.ts`.
+   - Not copied, because nothing uses them (M5, D3): `database/media.ts`, `api/media.ts`, `shared/pagination.ts`, `api/ai.ts`, `shared/ai-validation.ts`.
+   - `validation.ts` keeps only `ObjectIdSchema`. Phase 3 uses it. The other 21 helpers were not used.
+   - `lastName` is optional in `RegisterSchema` and in the `User` types (F10).
+   - The old package stays until Phase 5, so it is a copy, not a move.
+4. The root `package.json` has no workspaces. Scripts are `dev`, `build`, `start`, and `type-check`. Phase 9 adds `lint` and `test` with their configuration. `"engines"` is `{ "node": ">=20.9.0" }`. `.yarnrc` is deleted, because its only line was `ignore-engines true` (S8).
+5. Versions: Next.js 16.3.8, React 19.3.0, Zod 3.25, Tailwind 3.4. TypeScript stays at 5.9, because TypeScript 7 (the new native compiler) is not yet tested with Next.js. Upgrade it in a separate task.
+6. `.gitignore`: `public` is no longer ignored, because Next.js serves static files from `public/`. `next-env.d.ts` and `.vercel` are ignored.
+7. `backend/`, `frontend/`, and `packages/` stay in the tree as source for the port. Without workspaces, the old apps do not install from the root. To run the old app, use a worktree of `main`: `git worktree add ../bookmarked-main main`.
 
-Done when: `yarn dev` shows an empty Next.js page with the Tailwind theme, and `yarn type-check` passes.
+Done when: `yarn dev` shows the placeholder page with the Tailwind theme, `yarn build` passes, and `yarn type-check` passes. All three pass.
 
 ### Phase 2: Server foundation
 
