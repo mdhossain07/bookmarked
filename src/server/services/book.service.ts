@@ -74,6 +74,12 @@ export async function deleteBook(userId: string, bookId: string): Promise<void> 
   if (deletedCount === 0) throw notFoundError();
 }
 
+/** Distinct non-empty authors in the user's collection, sorted by name. */
+export async function listAuthors(userId: string): Promise<string[]> {
+  const authors: string[] = await BookModel.distinct("author", { userId, author: { $nin: [null, ""] } });
+  return authors.sort((a, b) => a.localeCompare(b));
+}
+
 export async function getBookStats(userId: string): Promise<BookStats> {
   const [basic, byGenre] = await Promise.all([
     BookModel.getBookStats(userId),

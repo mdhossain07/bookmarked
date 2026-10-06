@@ -41,6 +41,16 @@ export interface PaginatedResponse<T> {
   pagination: PaginationMeta;
 }
 
+/** Pagination block in list responses (`/api/books`, `/api/movies`). */
+export interface ListPagination {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
 // Common validation schemas
 export const PaginationSchema = z.object({
   page: z.number().positive().default(1),

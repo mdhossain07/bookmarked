@@ -1,6 +1,7 @@
 import "server-only";
 import { cookies } from "next/headers";
-import { ErrorCodes, HttpStatus } from "@/shared";
+import { ErrorCodes, HttpStatus, type UserDocument } from "@/shared";
+import { connectDb } from "../db";
 import { env } from "../env";
 import { ApiError } from "../http/errors";
 import { UserModel, type UserDoc } from "../models/User";
@@ -23,6 +24,23 @@ export async function createSession(user: { _id: { toString(): string }; email: 
 
 export async function clearSession(): Promise<void> {
   (await cookies()).set(SESSION_COOKIE, "", cookieOptions(0));
+}
+
+/**
+ * For Server Components: the signed-in user as plain JSON (the same shape
+ * `/api/auth/profile` returns), or `null` when there is no valid session.
+ */
+export async function getSessionUser(): Promise<UserDocument | null> {
+  // cookies() first: it marks the page dynamic, so the build never prerenders it against the database
+  if (!(await cookies()).has(SESSION_COOKIE)) return null;
+  try {
+    await connectDb();
+    const user = await requireUser();
+    return JSON.parse(JSON.stringify(user.toSafeObject())) as UserDocument;
+  } catch (error) {
+    if (error instanceof ApiError && error.statusCode === HttpStatus.UNAUTHORIZED) return null;
+    throw error;
+  }
 }
 
 /** Returns the signed-in, active user, or throws a 401 `ApiError`. */

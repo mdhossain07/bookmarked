@@ -1,15 +1,7 @@
 import "server-only";
 import type { Model } from "mongoose";
+import type { ListPagination } from "@/shared";
 import { equalsText } from "../http/validate";
-
-export interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
-}
 
 export interface PageOptions {
   page?: number;
@@ -37,7 +29,7 @@ export async function findPage<T>(
   ]);
   const pages = Math.ceil(total / limit);
 
-  const pagination: Pagination = { page, limit, total, pages, hasNext: page < pages, hasPrev: page > 1 };
+  const pagination: ListPagination = { page, limit, total, pages, hasNext: page < pages, hasPrev: page > 1 };
   return {
     items: docs.map((doc) => ({ ...doc, _id: String((doc as { _id: unknown })._id) })),
     pagination,

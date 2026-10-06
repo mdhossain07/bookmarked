@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 2 are committed. Phase 3 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 3 are committed. Phase 4 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -134,6 +134,10 @@ Each issue has an ID. The phases below refer to these IDs. "Fixed by migration" 
 | F11 | Every protected page mount calls `/auth/profile` again, and the page shows a spinner first. | `frontend/src/components/ProtectedRoute.tsx:29` | Phase 4: the server layout loads the user once. |
 | F12 | The 404 message says `Route GET / not found` for every unknown path, because `app.use("*")` changes `req.path`. Found by the baseline. | `backend/src/middleware/error.middleware.ts:127` | Phase 3: the Next.js 404 response names the real path. |
 | F14 | Movie statistics are always zero. The stats queries compare the `userId` text field with an ObjectId, so no movie matches. Found by the baseline: `total: 0` while a movie exists. | `backend/src/models/Movie.ts:187`, `backend/src/services/movie.service.ts` (industry and genre stats) | Phase 3: match the `userId` text. |
+| F15 | Save and delete errors show axios's generic text, for example "Request failed with status code 409", not the server message. Found in Phase 4. | `frontend/src/contexts/MediaContext.tsx`, `frontend/src/components/BookModal.tsx:163` | Phase 4: the API client throws the server message. |
+| F16 | Dead links and controls: "Forgot password?" goes to `/forgot-password`, the terms checkbox links to `/terms` and `/privacy` (none exist), and "Remember me" does nothing. Found in Phase 4. | `frontend/src/pages/Login.tsx:127`, `frontend/src/pages/Register.tsx:194` | Phase 4: removed. |
+| F17 | With the optional rating empty, the book and movie dialogs refuse to save ("Expected number, received nan"). Found in Phase 4. | `frontend/src/components/BookModal.tsx:299`, `MovieModal.tsx:370` | Phase 4: an empty rating means no rating. |
+| F18 | The API accepts book ratings from 1 to 10, but the cards show "x/5" and the dialogs allow 1 to 5. Found in Phase 4. | `packages/bookmarked-types/src/api/book.ts:8`, `frontend/src/components/MediaCard.tsx:112` | Phase 7: pick one scale. |
 | F13 | The two search routes read different parameters: books use `search`, movies use `q`. A bad book ID says "Invalid ID format", and a bad movie ID says "Validation failed". Found by the baseline. | `backend/src/controllers/movie.controller.ts:286`, `backend/src/services/book.service.ts:66` | Phase 3: the search routes go (D3). One `ObjectIdSchema` message for both. |
 
 ### Maintenance and tooling
@@ -320,30 +324,64 @@ How it was tested, against a production build (`next start`) and a local MongoDB
 
 Done when: every route in the table gives the same answers as the Express route for the Phase 0 cases, except the documented differences. The new fixes work as described. Type-check and build pass. All pass.
 
-### Phase 4: Port the pages
+### Phase 4: Port the pages (done, waits for review)
 
-1. `src/app/providers.tsx` ("use client"): `QueryClientProvider`, `ThemeProvider` from `next-themes` (M7), `AuthProvider`, and `Toaster`. Load React Query Devtools only in development.
-2. Router changes in the 31 places that use `react-router-dom`:
-   - `useNavigate()` becomes `useRouter()`.
-   - `<Link to>` becomes `<Link href>`.
-   - `useLocation()` becomes `usePathname()`.
-   - Each page file starts with `"use client"`. The page bodies do not change otherwise.
-3. Auth:
-   - `proxy.ts` handles redirects. Without a cookie, `/dashboard`, `/books`, `/movies`, and `/latest-updates` redirect to `/login?from=...`. With a valid cookie, `/login` and `/register` redirect to `/dashboard` (F9). The proxy only redirects. Route Handlers still call `requireUser()`.
-   - `(app)/layout.tsx` is a Server Component. It calls `requireUser()`, and on failure it redirects. It passes the user to `AuthProvider` as the starting value. This removes the spinner and the extra profile call on each page (F11).
-   - Delete `ProtectedRoute.tsx`.
-   - Register goes to `/dashboard` (D5, F6).
-   - Fix the `updateProfile` and `changePassword` paths (F5).
-4. API client: `baseURL: "/api"`. Remove `withCredentials`, because the request is same-origin. Remove `VITE_API_URL` and `vite-env.d.ts` (V7). Give the AI search call a 60-second timeout (V6).
-5. Lists and dashboard:
-   - `Books` and `Movies` send `status`, `genres`, `author` or `industry`, the date range, `search`, `page`, and `limit` to the API. They use the `pagination` object from the response (F1). Put the filters in the query key. Then TanStack Query fetches again after each filter change.
-   - The author filter options need all authors, not one page. Add `GET /api/books/authors` (a `distinct` query), or remove that filter.
-   - `Dashboard` reads `/api/books/stats` and `/api/movies/stats` (F2).
-   - `MediaContext` keeps only the mutations. Mutations invalidate both the list and the stats queries.
-6. AI search: `retry: false` (F8).
-7. `index.html` becomes `metadata` in `src/app/layout.tsx`. Add a favicon.
+What was done:
 
-Done when: you can do every user flow in the new app with `yarn dev`, and the old app is no longer needed for comparison.
+1. Providers: `src/app/providers.tsx` holds TanStack Query, `next-themes` (M7), and the toaster. React Query Devtools load only in development. The query client is created once for each browser session.
+2. Routes: `(auth)/login`, `(auth)/register`, `(app)/dashboard`, `(app)/books`, `(app)/movies`, and `(app)/latest-updates`. Each `page.tsx` is a small Server Component with a title. The page body is a client component in the same folder, for example `books-view.tsx`. `/` redirects to `/dashboard`.
+3. Router: `useNavigate()` became `useRouter()`, `<Link to>` became `<Link href>`, and `useLocation()` became `usePathname()`.
+4. Auth, in three layers:
+   - `src/proxy.ts` checks only the cookie signature, without the database. A signed-out visitor to an app page goes to `/login?from=<path>`. With `src/`, the file must be `src/proxy.ts`, not `proxy.ts` at the root.
+   - `(app)/layout.tsx` loads the user from the database. A missing, deleted, or deactivated user goes to `/login`. The layout passes the user to `AuthProvider`, so the pages have no spinner and no extra profile call (F11). `ProtectedRoute.tsx` is gone.
+   - `(auth)/layout.tsx` sends a signed-in, active user to `/dashboard` (F9). It reads the database too. With the cookie only, a deactivated user with a signed cookie goes back and forth between the two layouts.
+   - If `from` is a path on this site, sign-in goes there. Any other value, for example `//evil.example`, goes to `/dashboard`.
+   - Register signs in and goes to `/dashboard` (D5, F6).
+   - `src/lib/auth-client.ts` uses the correct profile and password paths (F5).
+5. API client: `baseURL: "/api"`, same-origin, so no `withCredentials`. `VITE_API_URL` is gone (V7). Errors become `ApiClientError` with the server message (F15). If a query gets 401 because the session expired, the page goes to `/login`. Mutations do not redirect, because a wrong current password also gives 401.
+6. Lists and dashboard:
+   - `useBooks()` and `useMovies()` send search, filters, and the page to the API (F1). The filters are in the query key. Search waits 300 ms after the last key press. A new filter goes back to page 1. Each page shows 24 items with Previous and Next buttons.
+   - New route `GET /api/books/authors` lists all authors for the author filter.
+   - The dashboard reads `/api/books/stats` and `/api/movies/stats` (F2).
+   - `MediaContext` is gone. `useMediaMutations()` refreshes every query of the same resource after a save or delete.
+   - Both pages share one list of date presets and small shared parts in `src/components/media/`.
+7. AI search: `useAISearch()` never retries and waits up to 60 seconds (F8, V6).
+8. Metadata: titles come from `metadata` (`"%s · Bookmarked"`). The favicon moves to Phase 7, with the new logo.
+
+Changes beyond the first version of this phase:
+
+- F15: save and delete errors show the server message.
+- F16: the login page lost "Remember me" (it did nothing), "Forgot password?" (no such page), and an empty "Or continue with" divider. The register page lost the terms checkbox, which linked to `/terms` and `/privacy` (no such pages).
+- F17: an empty rating no longer blocks the save. The rating limit in both dialogs is 1 to 5, as the cards show.
+- The login form validates again: its Zod resolver was commented out.
+- Last name shows as optional in the register form (F10).
+- `<Link>` no longer wraps a `<button>` on the dashboard. `Button asChild` renders one link.
+- `getSessionUser()` reads the cookie before it opens the database. Then the build does not try to prerender app pages against the database, and a visitor without a cookie costs no database call.
+
+How it was tested: a production build (`next start`) against a local MongoDB, in the browser pane.
+
+- Signed out, `/books` redirects to `/login?from=/books`.
+- Register goes to the dashboard. The sidebar shows the name without "undefined".
+- With 26 books and 3 movies, the dashboard shows the correct counts, including movies (F14).
+- Books shows "1–24 of 26" and page 2 shows "25–26".
+- Search "Book 1" gives 10 books and resets to page 1. `C++ (` gives "No books found", not an error.
+- The author filter gives 13 books. "Today" gives 4.
+- A duplicate book shows the server message. A new book saves with an empty rating, and the list refreshes. Delete works after the user says yes in the dialog.
+- AI search without a key sends one request and shows "AI search is not configured".
+- Light mode persists after a reload. The theme script runs before the page content, so there is no flash.
+- Logout goes to `/login`, and `/api/auth/profile` then gives 401.
+- `from=//evil.example/x` goes to `/dashboard` after sign-in.
+- A signed-in user who opens `/login` goes to `/dashboard`.
+- A user deactivated in the database, with the cookie still set, goes to `/login` with no loop.
+- The browser console shows only the two test errors (409 and 503). The server log has no errors.
+
+Not fixed in this phase:
+
+- The API accepts book ratings from 1 to 10, but the pages show and allow 1 to 5 (F18). Phase 7 picks one scale.
+- On a phone, the sidebar takes most of the screen. Phase 7 handles the layout.
+- The pages keep the old colors. Phase 6 replaces them.
+
+Done when: every user flow works in the new app. All pass.
 
 ### Phase 5: Remove the old code
 
