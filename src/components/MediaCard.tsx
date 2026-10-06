@@ -35,7 +35,7 @@ const getStatusConfig = (status: string) => {
         variant: "default" as const,
         icon: Eye,
         color:
-          "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+          "bg-books/10 text-books hover:bg-books/10",
       };
     case "watching":
     case "reading":
@@ -43,7 +43,7 @@ const getStatusConfig = (status: string) => {
         label: status === "watching" ? "Watching" : "Reading",
         variant: "secondary" as const,
         icon: status === "watching" ? Eye : BookOpen,
-        color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+        color: "bg-brass/10 text-brass-text hover:bg-brass/10",
       };
     case "to watch":
     case "will read":
@@ -52,14 +52,14 @@ const getStatusConfig = (status: string) => {
         variant: "outline" as const,
         icon: Clock,
         color:
-          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+          "bg-muted text-muted-foreground hover:bg-muted",
       };
     default:
       return {
         label: status,
         variant: "outline" as const,
         icon: Clock,
-        color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+        color: "bg-muted text-muted-foreground hover:bg-muted",
       };
   }
 };
@@ -81,14 +81,14 @@ export function MediaCard({
   const StatusIcon = statusConfig.icon;
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-gray-200 dark:border-gray-700">
+    <Card className="group hover:shadow-lg transition-all duration-200 border-border">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-lg text-gray-900 dark:text-white truncate mb-1">
+            <h3 className="font-semibold text-lg text-foreground truncate mb-1">
               {title}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+            <p className="text-sm text-muted-foreground truncate">
               {creator}
             </p>
           </div>
@@ -107,8 +107,8 @@ export function MediaCard({
         {/* Rating */}
         {rating && (
           <div className="flex items-center gap-1">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <Star className="h-4 w-4 fill-brass text-brass" />
+            <span className="text-sm font-medium text-muted-foreground">
               {rating}/5
             </span>
           </div>
@@ -153,13 +153,13 @@ export function MediaCard({
 
         {/* Notes Preview */}
         {/* {notes && (
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {notes}
           </p>
         )} */}
 
         {/* Dates */}
-        {/* <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+        {/* <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             <span>Added {format(dateAdded, "MMM d, yyyy")}</span>

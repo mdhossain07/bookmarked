@@ -2,50 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * "Reading room" palette. Values are HSL triplets for hsl(var(--token) / alpha).
+ * Text contrast on --background: light foreground 15.4, muted 5.4, primary 10.5,
+ * brass-text 5.0, books 5.3, movies 6.5; dark foreground 14.8, muted 6.9.
+ * --brass is 3:1 in light mode: fills, borders, and icons only, never body text.
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --background: 38 44% 96%;
+    --foreground: 227 20% 14%;
+    --card: 40 100% 99%;
+    --card-foreground: 227 20% 14%;
+    --popover: 40 100% 99%;
+    --popover-foreground: 227 20% 14%;
+    --primary: 223 32% 26%;
+    --primary-foreground: 38 44% 96%;
+    --secondary: 37 32% 92%;
+    --secondary-foreground: 227 20% 14%;
+    --muted: 37 32% 92%;
+    --muted-foreground: 32 6% 39%;
+    /* shadcn/ui uses accent for hover and selected surfaces */
+    --accent: 37 32% 92%;
+    --accent-foreground: 227 20% 14%;
+    --destructive: 3 51% 46%;
+    --destructive-foreground: 38 44% 96%;
+    --border: 38 28% 86%;
+    --input: 38 28% 86%;
+    --ring: 223 32% 26%;
+    --brass: 36 51% 48%;
+    --brass-text: 37 56% 35%;
+    --books: 132 16% 37%;
+    --movies: 343 34% 40%;
+    --shadow-color: 30 20% 25%;
+    --radius: 0.75rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --background: 228 22% 9%;
+    --foreground: 40 32% 89%;
+    --card: 226 20% 13%;
+    --card-foreground: 40 32% 89%;
+    --popover: 226 20% 13%;
+    --popover-foreground: 40 32% 89%;
+    --primary: 38 59% 59%;
+    --primary-foreground: 228 22% 9%;
+    --secondary: 226 20% 17%;
+    --secondary-foreground: 40 32% 89%;
+    --muted: 226 20% 17%;
+    --muted-foreground: 41 8% 61%;
+    --accent: 226 20% 19%;
+    --accent-foreground: 40 32% 89%;
+    --destructive: 4 65% 65%;
+    --destructive-foreground: 228 22% 9%;
+    --border: 226 16% 21%;
+    --input: 226 16% 21%;
+    --ring: 38 59% 59%;
+    --brass: 38 59% 59%;
+    --brass-text: 38 59% 59%;
+    --books: 130 22% 64%;
+    --movies: 342 47% 71%;
+    --shadow-color: 228 40% 3%;
   }
 }
 
@@ -53,21 +70,14 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-sans text-foreground antialiased;
   }
-}
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  h1,
+  h2,
+  h3 {
+    @apply font-display tracking-tight;
+  }
 }

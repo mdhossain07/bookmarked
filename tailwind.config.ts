@@ -1,4 +1,9 @@
 import type { Config } from "tailwindcss";
+import animate from "tailwindcss-animate";
+import defaultTheme from "tailwindcss/defaultTheme";
+
+// <alpha-value> lets opacity modifiers work on tokens, for example bg-books/15.
+const token = (name: string) => `hsl(var(--${name}) / <alpha-value>)`;
 
 const config: Config = {
   darkMode: ["class"],
@@ -6,48 +11,38 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        border: token("border"),
+        input: token("input"),
+        ring: token("ring"),
+        background: token("background"),
+        foreground: token("foreground"),
+        primary: { DEFAULT: token("primary"), foreground: token("primary-foreground") },
+        secondary: { DEFAULT: token("secondary"), foreground: token("secondary-foreground") },
+        destructive: { DEFAULT: token("destructive"), foreground: token("destructive-foreground") },
+        muted: { DEFAULT: token("muted"), foreground: token("muted-foreground") },
+        accent: { DEFAULT: token("accent"), foreground: token("accent-foreground") },
+        popover: { DEFAULT: token("popover"), foreground: token("popover-foreground") },
+        card: { DEFAULT: token("card"), foreground: token("card-foreground") },
+        brass: { DEFAULT: token("brass"), text: token("brass-text") },
+        books: token("books"),
+        movies: token("movies"),
+      },
+      fontFamily: {
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
+        display: ["var(--font-display)", "Georgia", ...defaultTheme.fontFamily.serif],
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      boxShadow: {
+        card: "0 1px 2px hsl(var(--shadow-color) / 0.06), 0 4px 12px hsl(var(--shadow-color) / 0.06)",
+        dialog: "0 8px 24px hsl(var(--shadow-color) / 0.14), 0 24px 64px hsl(var(--shadow-color) / 0.12)",
+      },
     },
   },
-  plugins: [],
+  plugins: [animate],
 };
 
 export default config;

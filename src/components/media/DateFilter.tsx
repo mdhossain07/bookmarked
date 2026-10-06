@@ -29,12 +29,12 @@ export function DateFilter({
 
       {preset === "custom" && (
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Date Range</label>
+          <label className="text-sm font-medium text-muted-foreground">Date Range</label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal focus:ring-2 focus:ring-blue-500"
+                className="w-full justify-start text-left font-normal focus:ring-2 focus:ring-ring"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {range?.from ? (

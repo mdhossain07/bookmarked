@@ -212,7 +212,7 @@ export default function MovieModal({
   };
 
   const defaultTrigger = (
-    <Button className="bg-purple-600 hover:bg-purple-700">
+    <Button>
       <Plus className="w-4 h-4 mr-2" />
       Add Movie
     </Button>
@@ -244,7 +244,7 @@ export default function MovieModal({
               placeholder="Enter movie title"
             />
             {errors.title && (
-              <p className="text-sm text-red-600 mt-1">
+              <p className="text-sm text-destructive mt-1">
                 {errors.title.message}
               </p>
             )}
@@ -352,7 +352,7 @@ export default function MovieModal({
               ))}
             </div>
             {errors.genres && (
-              <p className="text-sm text-red-600 mt-1">
+              <p className="text-sm text-destructive mt-1">
                 {errors.genres.message}
               </p>
             )}
@@ -392,7 +392,7 @@ export default function MovieModal({
               placeholder="https://example.com/movie-poster.jpg"
             />
             {errors.coverUrl && (
-              <p className="text-sm text-red-600 mt-1">
+              <p className="text-sm text-destructive mt-1">
                 {errors.coverUrl.message}
               </p>
             )}
@@ -422,7 +422,6 @@ export default function MovieModal({
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-purple-600 hover:bg-purple-700"
               >
                 {isSubmitting
                   ? "Saving..."

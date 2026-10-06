@@ -8,7 +8,7 @@ export function FilterBadge({ label, onClear }: { label: string; onClear: () => 
     <Badge variant="secondary" className="flex items-center gap-1">
       {label}
       <button type="button" aria-label={`Remove filter ${label}`} onClick={onClear}>
-        <X className="w-3 h-3 hover:text-red-500" />
+        <X className="w-3 h-3 hover:text-destructive" />
       </button>
     </Badge>
   );

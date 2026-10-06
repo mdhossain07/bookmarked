@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 4 are committed. Phase 5 is done and waits for review. Stage A (migration) is complete with Phase 5. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 5 are committed, and stage A (migration) is complete. Phase 6 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -159,7 +159,7 @@ Each issue has an ID. The phases below refer to these IDs. "Fixed by migration" 
 |---|---|---|---|
 | UI1 | Pages do not use the theme tokens. There are 462 hard-coded color classes (`bg-gray-800`, `text-black`, and others) in 11 files. A palette change today means editing every page. | `frontend/src/pages/*`, `frontend/src/components/*` | Phase 6: replace them with tokens. |
 | UI2 | The shadcn/ui components use `animate-in` and `fade-in` classes, but `tailwindcss-animate` is not installed. Dialog, popover, and toast animations do nothing. | `frontend/src/components/ui/dialog.tsx` and 5 more | Phase 6: install the plugin. |
-| UI3 | The app uses the system font stack only, with no type scale. Headings and body text look the same weight everywhere. | `frontend/src/index.css` | Phase 6: two typefaces and four text sizes. |
+| UI3 | The app uses the system font stack only, with no type scale. Headings and body text look the same weight everywhere. | `frontend/src/index.css` | Phase 6: two typefaces. Phase 7: four text sizes. |
 | UI4 | Loading states are full-page spinners, and empty lists show no guidance. | `frontend/src/pages/Books.tsx`, `Movies.tsx`, `Dashboard.tsx` | Phase 7: skeletons and empty states. |
 
 ## Target structure
@@ -417,11 +417,11 @@ How it was tested:
 
 Done when: `yarn build` passes and the old stack names are gone from the source. All pass.
 
-### Phase 6: Design system
+### Phase 6: Design system (done, waits for review)
 
 What this phase does, in plain words: it picks the colors and the fonts, and it makes every page take its colors from one place. After this phase, the app has the new palette. The layout does not change yet.
 
-1. Put the palette in `src/app/globals.css` as CSS variables (the existing shadcn/ui token names), plus three new tokens: `--accent-text`, `--books`, `--movies`. Add `books` and `movies` to `tailwind.config.ts`. Starting values (D8):
+1. Put the palette in `src/app/globals.css` as CSS variables (the existing shadcn/ui token names), plus four new tokens: `--brass`, `--brass-text`, `--books`, `--movies`. Add them to `tailwind.config.ts`. Values (D8):
 
    | Token | Light ("paper") | Dark ("night library") |
    |---|---|---|
@@ -431,8 +431,8 @@ What this phase does, in plain words: it picks the colors and the fonts, and it 
    | `--muted` | `#F1ECE4` | `#232734` |
    | `--muted-foreground` | `#6B655E` | `#A39E93` |
    | `--primary` | `#2E3A59` deep indigo | `#D4A85A` brass |
-   | `--accent` (fills, borders, icons) | `#B8873B` brass | `#D4A85A` brass |
-   | `--accent-text` | `#8A6427` dark brass | `#D4A85A` brass |
+   | `--brass` (fills, borders, icons) | `#B8873B` brass | `#D4A85A` brass |
+   | `--brass-text` | `#8A6427` dark brass | `#D4A85A` brass |
    | `--books` | `#4F6E55` sage | `#8FB896` sage |
    | `--movies` | `#8A4458` plum | `#D791A6` rose |
    | `--border` | `#E6DFD3` | `#2C303D` |
@@ -441,18 +441,45 @@ What this phase does, in plain words: it picks the colors and the fonts, and it 
 2. Contrast rule: body text must have a contrast of 4.5:1 or more. Large text and icons must have 3:1 or more. I measured the values above against `--background`:
    - Light: foreground 15.4, muted text 5.4, primary 10.5, books 5.3, movies 6.5, accent text 5.0.
    - Dark: foreground 14.8, muted text 6.9, primary 8.4, books 8.3, movies 7.4.
-   - Light `--accent` brass is 3.0:1, so it is for fills, borders, and icons only. Brass text in light mode uses `--accent-text`.
-3. Typefaces (D9): load Fraunces (headings) and Inter (body) with `next/font/google`. `next/font` hosts the files with the app, so there is no layout shift and no request to Google at run time. Use four text sizes only: 14, 16, 20, and 32 pixels.
+   - Light `--brass` is 3.0:1, so it is for fills, borders, and icons only. Brass text in light mode uses `--brass-text`.
+3. Typefaces (D9): load Fraunces (headings) and Inter (body) with `next/font/google`. `next/font` hosts the files with the app, so there is no layout shift and no request to Google at run time. Phase 7 applies four text sizes only: 14, 16, 20, and 32 pixels.
 4. Shape: `--radius: 0.75rem`. One soft shadow token for cards, one for dialogs.
 5. Install `tailwindcss-animate` and add it to the Tailwind plugins (UI2).
 6. Replace the 462 hard-coded color classes with tokens (UI1). Examples: `bg-white dark:bg-gray-800` becomes `bg-card`. `text-gray-600 dark:text-gray-400` becomes `text-muted-foreground`. `bg-black dark:bg-white` becomes `bg-primary`.
 
 Done when: both themes show the new palette on every page, and `git grep -nE "(gray|slate|zinc)-[0-9]|bg-black|text-black|bg-white|text-white" src` returns nothing outside `src/components/ui/`.
 
+What was done:
+
+- `globals.css` holds both palettes as HSL values, with the contrast numbers in a comment. `h1` to `h3` use the display font.
+- `tailwind.config.ts` defines every color as `hsl(var(--token) / <alpha-value>)`. Opacity modifiers such as `bg-books/10` work only in this form.
+- Fraunces and Inter load with `next/font/google` in `src/app/layout.tsx`, as the CSS variables `--font-display` and `--font-sans`.
+- `--radius` is `0.75rem`. New shadows: `shadow-card` and `shadow-dialog`.
+- `tailwindcss-animate` is installed (UI2). Dialog, popover, and toast animations now run.
+- 387 hard-coded color classes in 20 files became tokens (UI1). Gradient text titles and gradient buttons became plain text and the standard primary button. No `dark:` color classes remain, because each token has a dark value.
+- Status badges: done is sage (`books`), in progress is brass, planned is muted. Text on a tint uses a 10 percent tint, because a 15 percent tint puts some pairs below 4.5:1.
+- The sidebar shows the current page with a brass tint. The dashboard numbers use the books and movies colors.
+- The brand name is "Bookmarked" everywhere. The login and register pages said "BookMarked".
+
+Changes from the first version of this phase:
+
+- The brass tokens are `--brass` and `--brass-text`, not `--accent` and `--accent-text`. shadcn/ui uses `accent` for menu and button hover backgrounds. With a brass `accent`, every hover is brass.
+- The four-size type scale moves to Phase 7. It changes the layout of every page, and Phase 7 changes those layouts anyway.
+
+How it was tested, on a production build with sample data, in the browser pane:
+
+- The plan's grep gate returns nothing in `src`, and no named Tailwind colors such as `red-600` remain.
+- A script measured the contrast of every visible text element on all six pages in both themes, about 310 elements in total. None is below 4.5:1, or 3:1 for large text.
+- Screenshots of the dashboard, books, a dialog, and Latest Updates look right in both themes. In dark mode, the done and in-progress badges have different colors.
+- The page cannot be shown in a frame on another site: the contrast script's first attempt used a frame, and `X-Frame-Options: DENY` blocked it.
+
+Done when: both themes show the new palette on every page, and the grep gate returns nothing. All pass.
+
 ### Phase 7: Components and motion
 
 What this phase does, in plain words: it gives the pages a cleaner layout and small, calm movements. Nothing moves for long. If your device asks for less motion, nothing moves at all.
 
+0. Type scale: four text sizes only, 14, 16, 20, and 32 pixels, moved from Phase 6.
 1. Layout:
    - Sidebar on `--card` with a thin border. The active item has a brass bar on its left side that slides to the new item.
    - Top bar only holds the theme toggle and the user menu.

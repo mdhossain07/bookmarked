@@ -23,9 +23,9 @@ export function FilterSelect({
 }) {
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
+      <label className="text-sm font-medium text-muted-foreground">{label}</label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="focus:ring-2 focus:ring-blue-500">
+        <SelectTrigger className="focus:ring-2 focus:ring-ring">
           <SelectValue placeholder={allLabel} />
         </SelectTrigger>
         <SelectContent>

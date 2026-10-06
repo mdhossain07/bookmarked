@@ -189,7 +189,7 @@ export default function BookModal({
   };
 
   const defaultTrigger = (
-    <Button className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700">
+    <Button>
       <BookOpen className="w-4 h-4 mr-2" />
       Add Book
     </Button>
@@ -200,7 +200,7 @@ export default function BookModal({
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-semibold">
             {isEdit ? "Edit Book" : "Add New Book"}
           </DialogTitle>
         </DialogHeader>
@@ -213,10 +213,10 @@ export default function BookModal({
               id="title"
               {...register("title")}
               placeholder="Enter book title"
-              className="focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-2 focus:ring-ring"
             />
             {errors.title && (
-              <p className="text-sm text-red-600">{errors.title.message}</p>
+              <p className="text-sm text-destructive">{errors.title.message}</p>
             )}
           </div>
 
@@ -227,10 +227,10 @@ export default function BookModal({
               id="author"
               {...register("author")}
               placeholder="Enter author name"
-              className="focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-2 focus:ring-ring"
             />
             {errors.author && (
-              <p className="text-sm text-red-600">{errors.author.message}</p>
+              <p className="text-sm text-destructive">{errors.author.message}</p>
             )}
           </div>
 
@@ -243,7 +243,7 @@ export default function BookModal({
                 onChange={(e) => setNewGenre(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Add a genre"
-                className="focus:ring-2 focus:ring-blue-500"
+                className="focus:ring-2 focus:ring-ring"
               />
               <Button type="button" onClick={addGenre} variant="outline">
                 <Plus className="w-4 h-4" />
@@ -258,14 +258,14 @@ export default function BookModal({
                 >
                   {genre}
                   <X
-                    className="w-3 h-3 cursor-pointer hover:text-red-500"
+                    className="w-3 h-3 cursor-pointer hover:text-destructive"
                     onClick={() => removeGenre(genre)}
                   />
                 </Badge>
               ))}
             </div>
             {errors.genres && (
-              <p className="text-sm text-red-600">{errors.genres.message}</p>
+              <p className="text-sm text-destructive">{errors.genres.message}</p>
             )}
           </div>
 
@@ -277,7 +277,7 @@ export default function BookModal({
                 value={watch("status")}
                 onValueChange={(value) => setValue("status", value as any)}
               >
-                <SelectTrigger className="focus:ring-2 focus:ring-blue-500">
+                <SelectTrigger className="focus:ring-2 focus:ring-ring">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -299,10 +299,10 @@ export default function BookModal({
                 // empty input means "no rating"; valueAsNumber would send NaN and block the save (F17)
                 {...register("rating", { setValueAs: (value) => (value === "" ? undefined : Number(value)) })}
                 placeholder="Rate this book"
-                className="focus:ring-2 focus:ring-blue-500"
+                className="focus:ring-2 focus:ring-ring"
               />
               {errors.rating && (
-                <p className="text-sm text-red-600">{errors.rating.message}</p>
+                <p className="text-sm text-destructive">{errors.rating.message}</p>
               )}
             </div>
           </div>
@@ -314,7 +314,7 @@ export default function BookModal({
               id="completedOn"
               type="date"
               {...register("completedOn")}
-              className="focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-2 focus:ring-ring"
             />
           </div>
 
@@ -325,10 +325,10 @@ export default function BookModal({
               id="coverUrl"
               {...register("coverUrl")}
               placeholder="https://example.com/book-cover.jpg"
-              className="focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-2 focus:ring-ring"
             />
             {errors.coverUrl && (
-              <p className="text-sm text-red-600">{errors.coverUrl.message}</p>
+              <p className="text-sm text-destructive">{errors.coverUrl.message}</p>
             )}
           </div>
 
@@ -340,10 +340,10 @@ export default function BookModal({
               {...register("review")}
               placeholder="Write your thoughts about this book..."
               rows={4}
-              className="focus:ring-2 focus:ring-blue-500"
+              className="focus:ring-2 focus:ring-ring"
             />
             {errors.review && (
-              <p className="text-sm text-red-600">{errors.review.message}</p>
+              <p className="text-sm text-destructive">{errors.review.message}</p>
             )}
           </div>
 
@@ -360,7 +360,6 @@ export default function BookModal({
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700"
               >
                 {isSubmitting
                   ? "Saving..."

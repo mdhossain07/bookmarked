@@ -62,19 +62,19 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300",
+        "flex flex-col bg-card border-r border-border transition-all duration-300",
         isCollapsed ? "w-16" : "w-64",
         className
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between p-4 border-b border-border">
         {!isCollapsed && (
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center mr-3">
-              <Book className="w-5 h-5 text-white dark:text-black" />
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mr-3">
+              <Book className="w-5 h-5 text-primary-foreground" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl font-bold text-foreground">
               Bookmarked
             </h1>
           </div>
@@ -104,8 +104,8 @@ export function Sidebar({ className }: SidebarProps) {
               className={cn(
                 "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300"
-                  : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700",
+                  ? "bg-brass/10 text-brass-text"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 isCollapsed && "justify-center"
               )}
             >
@@ -117,16 +117,16 @@ export function Sidebar({ className }: SidebarProps) {
       </nav>
 
       {/* User Section */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-t border-border">
         {!isCollapsed && (
           <div className="flex items-center mb-3 px-3 py-2">
-            <User className="h-4 w-4 mr-2 text-gray-500" />
+            <User className="h-4 w-4 mr-2 text-muted-foreground" />
             <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <span className="text-sm font-medium text-foreground truncate">
                 {displayName}
               </span>
               {user?.email && (
-                <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <span className="text-xs text-muted-foreground truncate">
                   {user.email}
                 </span>
               )}

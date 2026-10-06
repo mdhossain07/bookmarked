@@ -16,8 +16,8 @@ export function DashboardView() {
   return (
     <>
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back, {user.firstName}!</h2>
-        <p className="text-gray-600 dark:text-gray-400">Track your reading and watching progress</p>
+        <h2 className="text-3xl font-bold text-foreground mb-2">Welcome back, {user.firstName}!</h2>
+        <p className="text-muted-foreground">Track your reading and watching progress</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -27,11 +27,11 @@ export function DashboardView() {
             <CardDescription>Track your reading progress</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <StatRow label="Books Read" value={count(bookStats?.byStatus.read, booksLoading)} color="text-green-600" />
+            <StatRow label="Books Read" value={count(bookStats?.byStatus.read, booksLoading)} color="text-books" />
             <StatRow
               label="To Be Read"
               value={count(bookStats?.byStatus["will read"], booksLoading)}
-              color="text-blue-600"
+              color="text-foreground"
             />
           </CardContent>
         </Card>
@@ -45,12 +45,12 @@ export function DashboardView() {
             <StatRow
               label="Movies Watched"
               value={count(movieStats?.byStatus.watched, moviesLoading)}
-              color="text-green-600"
+              color="text-movies"
             />
             <StatRow
               label="To Watch"
               value={count(movieStats?.byStatus["to watch"], moviesLoading)}
-              color="text-blue-600"
+              color="text-foreground"
             />
           </CardContent>
         </Card>
@@ -77,7 +77,7 @@ export function DashboardView() {
 function StatRow({ label, value, color }: { label: string; value: number | string; color: string }) {
   return (
     <div className="flex justify-between items-center">
-      <span className="text-sm text-gray-600 dark:text-gray-400">{label}</span>
+      <span className="text-sm text-muted-foreground">{label}</span>
       <span className={`text-2xl font-bold ${color}`}>{value}</span>
     </div>
   );

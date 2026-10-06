@@ -21,7 +21,7 @@ export function Pagination({
 
   return (
     <nav aria-label="Pagination" className="flex items-center justify-between gap-4">
-      <p className="text-sm text-gray-600 dark:text-gray-400">
+      <p className="text-sm text-muted-foreground">
         Showing {first}–{last} of {total} {noun}
       </p>
       {pages > 1 && (
@@ -30,7 +30,7 @@ export function Pagination({
             <ChevronLeft className="mr-1 h-4 w-4" />
             Previous
           </Button>
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-sm text-muted-foreground">
             Page {page} of {pages}
           </span>
           <Button variant="outline" size="sm" disabled={!hasNext} onClick={() => onPageChange(page + 1)}>
