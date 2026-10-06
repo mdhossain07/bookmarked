@@ -3,11 +3,12 @@ import { z } from "zod";
 // Status enum schema
 export const BookStatusSchema = z.enum(["read", "reading", "will read"]);
 
-// Rating schema - supports both 1-5 and 1-10 scales
+// F18: one 1-5 scale in steps of 0.5; the models still accept 1-10 for older records.
 export const BookRatingSchema = z
   .number()
   .min(1, "Rating must be at least 1")
-  .max(10, "Rating cannot exceed 10")
+  .max(5, "Rating cannot exceed 5")
+  .multipleOf(0.5, "Rating must be a whole or half number")
   .optional();
 
 // Create book validation schema

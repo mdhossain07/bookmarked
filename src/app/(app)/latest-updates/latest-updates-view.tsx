@@ -23,6 +23,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { PageHeader } from "@/components/media/PageHeader";
 import { useAISearch } from "@/hooks/use-ai-search";
 import { AISearchSchema, type AISearchRequest, type AISearchResult } from "@/shared";
 
@@ -69,22 +70,15 @@ export function LatestUpdatesView() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-semibold text-foreground">
-              Latest Updates
-            </h1>
-            <p className="text-muted-foreground text-lg mt-2">
-              Discover new books and movies with AI-powered search and
-              recommendations.
-            </p>
-          </div>
-        </div>
+        <PageHeader
+          title="Latest Updates"
+          description="Ask about books and movies, and get recommendations from AI."
+        />
 
         {/* Search Interface */}
         <Card className="w-full shadow-lg border-0 bg-card">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
+            <CardTitle className="flex items-center gap-2">
               <div className="p-2 rounded-lg bg-brass/10">
                 <Sparkles className="h-5 w-5 text-brass-text" />
               </div>
@@ -156,7 +150,7 @@ export function LatestUpdatesView() {
         {searchResult && (
           <Card className="w-full shadow-card animate-in fade-in slide-in-from-bottom-2 duration-300">
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-xl">
+              <CardTitle className="flex items-center gap-2">
                 <div className="p-2 rounded-lg bg-books/10">
                   <BookOpen className="h-5 w-5 text-books" />
                 </div>
@@ -166,19 +160,19 @@ export function LatestUpdatesView() {
                 <div className="flex flex-wrap gap-2 mt-3">
                   <Badge
                     variant="secondary"
-                    className="text-xs bg-card/80"
+                    className="text-sm bg-card/80"
                   >
                     Total Tokens: {searchResult.usage.total_tokens}
                   </Badge>
                   <Badge
                     variant="outline"
-                    className="text-xs"
+                    className="text-sm"
                   >
                     Response: {searchResult.usage.completion_tokens}
                   </Badge>
                   <Badge
                     variant="outline"
-                    className="text-xs"
+                    className="text-sm"
                   >
                     Prompt: {searchResult.usage.prompt_tokens}
                   </Badge>
@@ -201,7 +195,7 @@ export function LatestUpdatesView() {
         {searchMutation.error && (
           <Card className="w-full border-destructive/30 shadow-card animate-in fade-in slide-in-from-bottom-2 duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive text-xl">
+              <CardTitle className="flex items-center gap-2 text-destructive">
                 <div className="p-2 rounded-lg bg-destructive/10">
                   <AlertCircle className="h-5 w-5" />
                 </div>
@@ -221,7 +215,7 @@ export function LatestUpdatesView() {
         {/* Example Queries */}
         <Card className="w-full shadow-card">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-xl">
+            <CardTitle className="flex items-center gap-2">
               <div className="p-2 rounded-lg bg-muted">
                 <Film className="h-5 w-5 text-muted-foreground" />
               </div>

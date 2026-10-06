@@ -200,7 +200,7 @@ export default function BookModal({
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold">
+          <DialogTitle>
             {isEdit ? "Edit Book" : "Add New Book"}
           </DialogTitle>
         </DialogHeader>

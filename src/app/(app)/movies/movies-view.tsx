@@ -1,34 +1,35 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Film, Filter, Search, X } from "lucide-react";
+import { Film, SearchX } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import type { Movie } from "@/shared";
 import MovieModal from "@/components/MovieModal";
 import { MediaCard } from "@/components/MediaCard";
 import { ConfirmDeleteDialog } from "@/components/media/ConfirmDeleteDialog";
 import { DateFilter } from "@/components/media/DateFilter";
-import { FilterBadge } from "@/components/media/FilterBadge";
+import { EmptyState } from "@/components/media/EmptyState";
 import { FilterSelect } from "@/components/media/FilterSelect";
+import { LibraryToolbar, type ActiveFilter } from "@/components/media/LibraryToolbar";
+import { MEDIA_GRID, MediaGridSkeleton } from "@/components/media/MediaGridSkeleton";
+import { PageHeader } from "@/components/media/PageHeader";
 import { Pagination } from "@/components/media/Pagination";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useMediaMutations, useMovies } from "@/hooks/use-media";
 import { toast } from "@/hooks/use-toast";
 import { errorMessage } from "@/lib/api";
 import { completedParams, presetLabel } from "@/lib/date-presets";
-import { cn } from "@/lib/utils";
+import { optionLabel } from "@/components/media/FilterSelect";
 
 const PAGE_SIZE = 24;
 
 const STATUS_OPTIONS = [
-  { value: "watching", label: "Currently Watching" },
-  { value: "watched", label: "Completed" },
-  { value: "to watch", label: "Want to Watch" },
+  { value: "to watch", label: "To watch" },
+  { value: "watching", label: "Watching" },
+  { value: "watched", label: "Watched" },
 ];
 
-const INDUSTRY_OPTIONS = ["Bollywood", "Hollywood", "Bangla", "South Indian", "Foreign"].map((industry) => ({
+const INDUSTRY_OPTIONS = ["Hollywood", "Bollywood", "Bangla", "South Indian", "Foreign"].map((industry) => ({
   value: industry,
   label: industry,
 }));
@@ -40,7 +41,7 @@ export function MoviesView() {
   const [watchedDateFilter, setWatchedDateFilter] = useState("all");
   const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>();
   const [page, setPage] = useState(1);
-  const [showFilters, setShowFilters] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<Movie | null>(null);
   const [movieToDelete, setMovieToDelete] = useState<Movie | null>(null);
 
@@ -61,7 +62,14 @@ export function MoviesView() {
   }, [search, statusFilter, industryFilter, watchedDateFilter, customDateRange]);
 
   const movies = data?.movies ?? [];
-  const hasActiveFilters = statusFilter !== "all" || industryFilter !== "all" || watchedDateFilter !== "all";
+  const activeFilters: ActiveFilter[] = [
+    ...(statusFilter !== "all" ? [{ label: `Status: ${optionLabel(STATUS_OPTIONS, statusFilter)}`, onClear: () => setStatusFilter("all") }] : []),
+    ...(industryFilter !== "all" ? [{ label: `Industry: ${industryFilter}`, onClear: () => setIndustryFilter("all") }] : []),
+    ...(watchedDateFilter !== "all"
+      ? [{ label: `Watched: ${presetLabel(watchedDateFilter)}`, onClear: () => setWatchedDateFilter("all") }]
+      : []),
+  ];
+  const isFiltered = Boolean(search) || activeFilters.length > 0;
 
   const clearFilters = () => {
     setStatusFilter("all");
@@ -74,7 +82,7 @@ export function MoviesView() {
     if (!movieToDelete) return;
     try {
       await remove.mutateAsync(movieToDelete._id);
-      toast({ title: "Success", description: "Movie deleted successfully" });
+      toast({ title: "Movie deleted", description: `“${movieToDelete.title}” is no longer in your library.` });
       setMovieToDelete(null);
     } catch (err) {
       toast({ title: "Error", description: errorMessage(err, "Failed to delete movie"), variant: "destructive" });
@@ -82,114 +90,62 @@ export function MoviesView() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-semibold text-foreground">
-            My Movies
-          </h1>
-          <p className="text-muted-foreground text-lg mt-2">Keep track of your cinematic adventures and favorites.</p>
-        </div>
-        <MovieModal />
-      </div>
+    <>
+      <PageHeader
+        title="Movies"
+        description="Everything you have watched, are watching, and want to watch."
+        action={<MovieModal />}
+      />
 
-      <div className="bg-card p-4 rounded-lg shadow-sm border border-border space-y-4">
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-            <Input
-              placeholder="Search movies, directors, or genres..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 focus:ring-2 focus:ring-ring"
-            />
-          </div>
-          <Button
-            variant={showFilters ? "default" : "outline"}
-            onClick={() => setShowFilters(!showFilters)}
-            className="min-w-[100px]"
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filters
-          </Button>
-        </div>
-
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-border">
-            <FilterSelect
-              label="Status"
-              value={statusFilter}
-              onChange={setStatusFilter}
-              allLabel="All Movies"
-              options={STATUS_OPTIONS}
-            />
-            <FilterSelect
-              label="Industry"
-              value={industryFilter}
-              onChange={setIndustryFilter}
-              allLabel="All Industries"
-              options={INDUSTRY_OPTIONS}
-            />
-            <DateFilter
-              label="Watched Date"
-              preset={watchedDateFilter}
-              onPresetChange={setWatchedDateFilter}
-              range={customDateRange}
-              onRangeChange={setCustomDateRange}
-            />
-            {hasActiveFilters && (
-              <div className="flex items-end">
-                <Button
-                  variant="ghost"
-                  onClick={clearFilters}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Clear Filters
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-
-      {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2">
-          {statusFilter !== "all" && (
-            <FilterBadge label={`Status: ${statusFilter}`} onClear={() => setStatusFilter("all")} />
-          )}
-          {industryFilter !== "all" && (
-            <FilterBadge label={`Industry: ${industryFilter}`} onClear={() => setIndustryFilter("all")} />
-          )}
-          {watchedDateFilter !== "all" && (
-            <FilterBadge
-              label={`Watched: ${presetLabel(watchedDateFilter)}`}
-              onClear={() => setWatchedDateFilter("all")}
-            />
-          )}
-        </div>
-      )}
+      <LibraryToolbar
+        search={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Search movies, directors, or genres"
+        filtersOpen={filtersOpen}
+        onFiltersOpenChange={setFiltersOpen}
+        activeFilters={activeFilters}
+        onClearAll={clearFilters}
+      >
+        <FilterSelect
+          label="Status"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          allLabel="All statuses"
+          options={STATUS_OPTIONS}
+        />
+        <FilterSelect
+          label="Industry"
+          value={industryFilter}
+          onChange={setIndustryFilter}
+          allLabel="All industries"
+          options={INDUSTRY_OPTIONS}
+        />
+        <DateFilter
+          label="Watched date"
+          preset={watchedDateFilter}
+          onPresetChange={setWatchedDateFilter}
+          range={customDateRange}
+          onRangeChange={setCustomDateRange}
+        />
+      </LibraryToolbar>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-muted-foreground">Loading movies...</div>
-        </div>
+        <MediaGridSkeleton />
       ) : error ? (
-        <div className="text-center py-16 text-destructive">{errorMessage(error, "Failed to load movies")}</div>
+        <p className="py-16 text-center text-destructive">{errorMessage(error, "Failed to load movies")}</p>
       ) : movies.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {movies.map((movie) => (
+        <div className="space-y-8">
+          <div className={MEDIA_GRID}>
+            {movies.map((movie, index) => (
               <MediaCard
                 key={movie._id}
+                kind="movie"
+                index={index}
                 title={movie.title}
-                creator={movie.director || "Unknown Director"}
+                creator={movie.director}
                 status={movie.status}
                 rating={movie.rating}
-                notes={movie.review}
-                dateAdded={new Date(movie.createdAt)}
-                dateFinished={movie.completedOn ? new Date(movie.completedOn) : undefined}
-                genre={movie.genres}
+                genres={movie.genres}
                 coverUrl={movie.coverUrl}
                 onEdit={() => setEditingMovie(movie)}
                 onDelete={() => setMovieToDelete(movie)}
@@ -197,27 +153,23 @@ export function MoviesView() {
             ))}
           </div>
           {data && <Pagination pagination={data.pagination} onPageChange={setPage} noun="movies" />}
-        </>
-      ) : (
-        <div className="text-center py-16 bg-card rounded-lg shadow-sm border">
-          <Film className="w-16 h-16 text-muted-foreground/50 mx-auto mb-6" />
-          <h3 className="text-xl font-semibold text-muted-foreground mb-2">
-            {search || hasActiveFilters ? "No movies found" : "Start Your Movie Collection"}
-          </h3>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            {search || hasActiveFilters
-              ? "Try adjusting your search or filter criteria."
-              : "Add your first movie to start tracking your viewing progress and build your personal collection."}
-          </p>
-          {!search && !hasActiveFilters && <MovieModal />}
         </div>
+      ) : isFiltered ? (
+        <EmptyState icon={SearchX} title="No movies found" description="Try a different search or fewer filters." />
+      ) : (
+        <EmptyState
+          icon={Film}
+          title="No movies yet"
+          description="Add a movie you loved, or one you want to watch next."
+          action={<MovieModal />}
+        />
       )}
 
       {editingMovie && (
         <MovieModal
           movie={editingMovie}
           isEdit
-          trigger={<div />}
+          trigger={<span />}
           open
           onOpenChange={(open) => !open && setEditingMovie(null)}
         />
@@ -228,6 +180,6 @@ export function MoviesView() {
         onConfirm={confirmDelete}
         onCancel={() => setMovieToDelete(null)}
       />
-    </div>
+    </>
   );
 }

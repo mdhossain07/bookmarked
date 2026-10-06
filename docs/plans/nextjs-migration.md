@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 5 are committed, and stage A (migration) is complete. Phase 6 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 6 are committed. Phase 7 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -475,7 +475,7 @@ How it was tested, on a production build with sample data, in the browser pane:
 
 Done when: both themes show the new palette on every page, and the grep gate returns nothing. All pass.
 
-### Phase 7: Components and motion
+### Phase 7: Components and motion (done, waits for review)
 
 What this phase does, in plain words: it gives the pages a cleaner layout and small, calm movements. Nothing moves for long. If your device asks for less motion, nothing moves at all.
 
@@ -499,6 +499,34 @@ What this phase does, in plain words: it gives the pages a cleaner layout and sm
    - Use the `motion-safe:` prefix for all movement. With `prefers-reduced-motion: reduce`, only color and opacity changes remain.
 
 Done when: every page uses the new layout and components, and with reduced motion turned on in the operating system, nothing moves.
+
+What was done:
+
+- Type scale: `tailwind.config.ts` defines four sizes only, 14, 16, 20, and 32 px. A scan of the running page finds only those four.
+- Layout: a sticky sidebar. A brass bar slides to the active item. The top bar has the theme toggle and a user menu with the avatar, the name, and log out. On phones, a bottom navigation bar replaces the sidebar. Page content has a 1200 px maximum width. Each page fades in once (`template.tsx`).
+- Login and register: two columns on wide screens. The form is on the left. The right panel is an ink gradient with a short line of text, and it carries `data-scene-slot` for Phase 8. On phones the form uses the full width over a soft gradient. Password fields have a labeled show/hide button, and errors are tied to their fields for screen readers.
+- Dashboard:
+  - A greeting. It is set after load, because the server hour and the browser hour can differ.
+  - Four stat tiles, each with a top border in the books or movies color.
+  - A "Recently added" row of books and movies together.
+- Cards:
+  - A 2:3 cover. With no cover, or a cover that fails to load, a placeholder shows the kind icon and the title.
+  - A status badge on the cover, a rating, and a quiet delete icon.
+  - Hover lifts a card by 2 px.
+- Lists: one `LibraryToolbar` shared by Books and Movies (search, filters on demand, chips, "Clear all"). Skeleton cards while loading. Empty states with one sentence and an action.
+- Motion: enter is 250 ms, hover is 150 ms, the first 10 items wait 30 ms each, easing `cubic-bezier(0.22, 1, 0.36, 1)`. All movement uses `motion-safe:`, and a `prefers-reduced-motion` rule shortens everything else.
+- F18: ratings use one 1 to 5 scale in steps of 0.5, in both API schemas and both dialogs. A rating of 8 now gets 400.
+- A favicon (`src/app/icon.svg`) and a logo component.
+
+How it was tested, on a production build with sample data:
+
+- Screens at 1440, 1280, 768, and 375 px wide, in both themes. The 375 px page has no sideways scroll.
+- Contrast scan, all four app pages in both themes: no text below the limit. It found one avatar label at 4.44:1, which is fixed.
+- Filters have accessible names. Broken cover URLs show the placeholder.
+
+Not done in this phase: nothing from the plan is left. The login and register right panel is still the gradient only. Phase 8 adds the 3D scene.
+
+Done when: every page uses the new layout and components, and with reduced motion on, nothing moves. The reduced-motion rule is in place and the animation values were checked. I did not turn on the operating system setting, so please check it once.
 
 ### Phase 8: Three.js scene
 

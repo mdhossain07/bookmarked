@@ -344,7 +344,7 @@ export default function MovieModal({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="text-xs h-6"
+                  className="h-7 text-sm"
                   onClick={() => addGenre(genre)}
                 >
                   {genre}
@@ -367,6 +367,7 @@ export default function MovieModal({
                 type="number"
                 min="1"
                 max="5"
+                step="0.5"
                 // empty input means "no rating"; valueAsNumber would send NaN and block the save (F17)
                 {...register("rating", { setValueAs: (value) => (value === "" ? undefined : Number(value)) })}
                 placeholder="Rate this movie"

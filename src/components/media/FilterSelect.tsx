@@ -23,9 +23,9 @@ export function FilterSelect({
 }) {
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-muted-foreground">{label}</label>
+      <label className="text-sm font-medium">{label}</label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="focus:ring-2 focus:ring-ring">
+        <SelectTrigger aria-label={label}>
           <SelectValue placeholder={allLabel} />
         </SelectTrigger>
         <SelectContent>
@@ -39,4 +39,8 @@ export function FilterSelect({
       </Select>
     </div>
   );
+}
+
+export function optionLabel(options: readonly FilterOption[], value: string): string {
+  return options.find((option) => option.value === value)?.label ?? value;
 }

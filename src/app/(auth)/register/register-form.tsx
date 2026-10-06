@@ -1,39 +1,26 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RegisterSchema, type RegisterRequest } from "@/shared";
-import { register as registerUser } from "@/lib/auth-client";
-import { errorMessage } from "@/lib/api";
-import { authToasts } from "@/lib/toast-helpers";
+import { FieldError } from "@/components/auth/FieldError";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Book, Eye, EyeOff, User, Mail, Lock } from "lucide-react";
+import { errorMessage } from "@/lib/api";
+import { register as registerUser } from "@/lib/auth-client";
+import { authToasts } from "@/lib/toast-helpers";
 
 export function RegisterForm() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
-
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<RegisterRequest>({
-    resolver: zodResolver(RegisterSchema),
-  });
+  } = useForm<RegisterRequest>({ resolver: zodResolver(RegisterSchema) });
 
   // D5: the API signs the new user in, so go straight to the dashboard.
   const onSubmit = async (data: RegisterRequest) => {
@@ -47,173 +34,100 @@ export function RegisterForm() {
     }
   };
 
+  const describedBy = (field: keyof RegisterRequest) => (errors[field] ? `${field}-error` : undefined);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        {/* Logo and Title */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-              <Book className="w-8 h-8 text-primary-foreground" />
-            </div>
+    <>
+      <h1 className="text-2xl font-semibold">Create your library</h1>
+      <p className="mt-1 text-muted-foreground">Track every book and movie in one calm place.</p>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5" noValidate>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First name</Label>
+            <Input
+              id="firstName"
+              autoComplete="given-name"
+              className="h-11"
+              aria-invalid={Boolean(errors.firstName)}
+              aria-describedby={describedBy("firstName")}
+              {...register("firstName")}
+            />
+            <FieldError id="firstName-error" message={errors.firstName?.message} />
           </div>
-          <h1 className="text-3xl font-bold text-foreground">
-            Bookmarked
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Start your reading and watching journey
-          </p>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">
+              Last name <span className="text-muted-foreground">(optional)</span>
+            </Label>
+            <Input
+              id="lastName"
+              autoComplete="family-name"
+              className="h-11"
+              aria-invalid={Boolean(errors.lastName)}
+              aria-describedby={describedBy("lastName")}
+              {...register("lastName")}
+            />
+            <FieldError id="lastName-error" message={errors.lastName?.message} />
+          </div>
         </div>
 
-        {/* Registration Form */}
-        <Card className="shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
-            <CardDescription>
-              Join thousands of readers and movie enthusiasts
-            </CardDescription>
-          </CardHeader>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <div className="relative">
-                    <Input
-                      id="firstName"
-                      type="text"
-                      placeholder="Enter your first name"
-                      className="h-12 pl-10 border-border focus:border-ring transition-colors"
-                      {...register("firstName")}
-                    />
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  </div>
-                  {errors.firstName && (
-                    <p className="text-sm text-destructive">
-                      {errors.firstName.message}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name (optional)</Label>
-                  <div className="relative">
-                    <Input
-                      id="lastName"
-                      type="text"
-                      placeholder="Enter your last name"
-                      className="h-12 pl-10 border-border focus:border-ring transition-colors"
-                      {...register("lastName")}
-                    />
-                    <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  </div>
-                  {errors.lastName && (
-                    <p className="text-sm text-destructive">
-                      {errors.lastName.message}
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    className="h-12 pl-10 border-border focus:border-ring transition-colors"
-                    {...register("email")}
-                  />
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                </div>
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Create a password"
-                    className="h-12 pl-10 pr-12 border-border focus:border-ring transition-colors"
-                    {...register("password")}
-                  />
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p className="text-sm text-destructive">
-                    {errors.password.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <div className="relative">
-                  <Input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    placeholder="Confirm your password"
-                    className="h-12 pl-10 pr-12 border-border focus:border-ring transition-colors"
-                    {...register("confirmPassword")}
-                  />
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="text-sm text-destructive">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors font-semibold"
-              >
-                {isSubmitting ? "Creating Account..." : "Create Account"}
-              </Button>
-              <div className="text-center text-sm text-muted-foreground">
-                Already have an account?{" "}
-                <Link
-                  href="/login"
-                  className="text-foreground hover:underline font-semibold"
-                >
-                  Sign in here
-                </Link>
-              </div>
-            </CardFooter>
-          </form>
-        </Card>
-
-        {/* Footer */}
-        <div className="text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Bookmarked. Track your reading and watching journey.</p>
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            autoComplete="email"
+            className="h-11"
+            aria-invalid={Boolean(errors.email)}
+            aria-describedby={describedBy("email")}
+            {...register("email")}
+          />
+          <FieldError id="email-error" message={errors.email?.message} />
         </div>
-      </div>
-    </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <PasswordInput
+            id="password"
+            autoComplete="new-password"
+            className="h-11"
+            aria-invalid={Boolean(errors.password)}
+            aria-describedby={describedBy("password") ?? "password-hint"}
+            {...register("password")}
+          />
+          {errors.password ? (
+            <FieldError id="password-error" message={errors.password.message} />
+          ) : (
+            <p id="password-hint" className="text-sm text-muted-foreground">
+              At least 8 characters.
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm password</Label>
+          <PasswordInput
+            id="confirmPassword"
+            autoComplete="new-password"
+            className="h-11"
+            aria-invalid={Boolean(errors.confirmPassword)}
+            aria-describedby={describedBy("confirmPassword")}
+            {...register("confirmPassword")}
+          />
+          <FieldError id="confirmPassword-error" message={errors.confirmPassword?.message} />
+        </div>
+
+        <Button type="submit" disabled={isSubmitting} className="h-11 w-full">
+          {isSubmitting ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
+
+      <p className="mt-8 text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">
+          Sign in
+        </Link>
+      </p>
+    </>
   );
 }
