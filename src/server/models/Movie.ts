@@ -5,7 +5,16 @@ import { Movie } from "@/shared";
 // Mongoose document interface with methods
 export interface MovieDoc extends Omit<Movie, "_id">, Document {
   _id: mongoose.Types.ObjectId;
-  toSafeObject(): any;
+  toSafeObject(): Record<string, unknown>;
+}
+
+export interface MovieStatsRow {
+  total: number;
+  watchedCount: number;
+  watchingCount: number;
+  toWatchCount: number;
+  averageRating: number | null;
+  recentlyCompleted: number;
 }
 
 // Static methods interface
@@ -15,7 +24,7 @@ export interface MovieModel extends mongoose.Model<MovieDoc> {
     userId: string,
     status: Movie["status"]
   ): Promise<MovieDoc[]>;
-  getMovieStats(userId: string): Promise<any>;
+  getMovieStats(userId: string): Promise<MovieStatsRow>;
 }
 
 // Movie schema

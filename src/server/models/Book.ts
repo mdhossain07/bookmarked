@@ -2,10 +2,22 @@ import "server-only";
 import mongoose, { Schema, Document } from "mongoose";
 import { Book } from "@/shared";
 
+// The fields the toJSON and toObject transforms touch.
+type SerializedDoc = { _id: { toString(): string }; password?: unknown; __v?: unknown; [key: string]: unknown };
+
 // Mongoose document interface with methods
 export interface BookDoc extends Omit<Book, "_id">, Document {
   _id: mongoose.Types.ObjectId;
-  toSafeObject(): any;
+  toSafeObject(): Record<string, unknown>;
+}
+
+export interface BookStatsRow {
+  total?: number;
+  readCount?: number;
+  readingCount?: number;
+  willReadCount?: number;
+  averageRating?: number | null;
+  recentlyCompleted?: number;
 }
 
 // Static methods interface
@@ -15,7 +27,7 @@ export interface BookModel extends mongoose.Model<BookDoc> {
     userId: string,
     status: Book["status"]
   ): Promise<BookDoc[]>;
-  getBookStats(userId: string): Promise<any>;
+  getBookStats(userId: string): Promise<BookStatsRow>;
 }
 
 // Book schema
@@ -107,13 +119,13 @@ const bookSchema = new Schema<BookDoc>(
   {
     timestamps: true,
     toJSON: {
-      transform: function (_doc, ret: any) {
+      transform: function (_doc, ret: SerializedDoc) {
         ret._id = ret._id.toString();
         return ret;
       },
     },
     toObject: {
-      transform: function (_doc, ret: any) {
+      transform: function (_doc, ret: SerializedDoc) {
         ret._id = ret._id.toString();
         return ret;
       },

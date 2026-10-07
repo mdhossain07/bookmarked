@@ -10,6 +10,7 @@ function isAuthError(error: unknown): boolean {
 function redirectOnExpiredSession(error: unknown) {
   if (error instanceof ApiClientError && error.status === 401 && typeof window !== "undefined") {
     const from = window.location.pathname + window.location.search;
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- a full reload drops the cached data of the expired session
     window.location.assign(`/login?from=${encodeURIComponent(from)}`);
   }
 }

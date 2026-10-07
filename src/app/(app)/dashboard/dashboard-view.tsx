@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { BookOpen, Film, Library } from "lucide-react";
 import BookModal from "@/components/BookModal";
@@ -20,6 +20,8 @@ import { cn } from "@/lib/utils";
 
 const RECENT_COUNT = 6;
 
+const subscribeNever = () => () => {};
+
 function greeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -29,9 +31,9 @@ function greeting(): string {
 
 export function DashboardView() {
   const { user } = useAuth();
-  // Set after mount: the server renders in UTC, so its hour differs from the visitor's.
-  const [salutation, setSalutation] = useState("Welcome back");
-  useEffect(() => setSalutation(greeting()), []);
+  // The server renders in UTC, so its hour differs from the visitor's: React shows the
+  // server text while hydrating, then switches to the browser's own hour.
+  const salutation = useSyncExternalStore(subscribeNever, greeting, () => "Welcome back");
   const bookStats = useBookStats();
   const movieStats = useMovieStats();
   const recentBooks = useBooks({ page: 1, limit: RECENT_COUNT });
@@ -87,7 +89,7 @@ export function DashboardView() {
     <>
       <div className="relative mb-8 overflow-hidden rounded-lg border bg-card p-6 shadow-card">
         <div className="absolute inset-0 [mask-image:linear-gradient(to_left,black,transparent_65%)]">
-          <SceneLayer />
+          <SceneLayer minWidth={768} />
         </div>
         <div className="relative [&>div]:mb-0">
           <PageHeader

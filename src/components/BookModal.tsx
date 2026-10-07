@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { X, Plus, BookOpen } from "lucide-react";
 import { useMediaMutations } from "@/hooks/use-media";
 import { toast } from "@/hooks/use-toast";
+import { errorMessage } from "@/lib/api";
 import type { Book } from "@/shared";
 
 // Form validation schema
@@ -63,7 +64,6 @@ export default function BookModal({
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? onOpenChange! : setInternalOpen;
 
-  const [genres, setGenres] = useState<string[]>(book?.genres || []);
   const [newGenre, setNewGenre] = useState("");
   const { create, update } = useMediaMutations<Book>("books");
 
@@ -73,7 +73,7 @@ export default function BookModal({
     formState: { errors, isSubmitting },
     reset,
     setValue,
-    watch,
+    control,
   } = useForm<BookFormData>({
     resolver: zodResolver(bookSchema),
     defaultValues: {
@@ -89,6 +89,9 @@ export default function BookModal({
       coverUrl: book?.coverUrl || "",
     },
   });
+  const genres = useWatch({ control, name: "genres" });
+  const setGenres = (next: string[]) => setValue("genres", next);
+  const watchedStatus = useWatch({ control, name: "status" });
 
   // Reset form when modal opens
   useEffect(() => {
@@ -106,7 +109,6 @@ export default function BookModal({
             : "",
           coverUrl: book.coverUrl || "",
         });
-        setGenres(book.genres || []);
       } else {
         reset({
           title: "",
@@ -118,15 +120,9 @@ export default function BookModal({
           completedOn: "",
           coverUrl: "",
         });
-        setGenres([]);
       }
     }
   }, [open, book, reset]);
-
-  // Update genres in form when local state changes
-  useEffect(() => {
-    setValue("genres", genres);
-  }, [genres, setValue]);
 
   const onSubmit = async (data: BookFormData) => {
     try {
@@ -157,10 +153,10 @@ export default function BookModal({
         reset();
         setGenres([]);
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: errorMessage(error, "Something went wrong"),
         variant: "destructive",
       });
     }
@@ -274,8 +270,8 @@ export default function BookModal({
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
-                value={watch("status")}
-                onValueChange={(value) => setValue("status", value as any)}
+                value={watchedStatus}
+                onValueChange={(value) => setValue("status", value as BookFormData["status"])}
               >
                 <SelectTrigger className="focus:ring-2 focus:ring-ring">
                   <SelectValue placeholder="Select status" />

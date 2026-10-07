@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 7 are committed. Phase 8 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 8 are committed. Phase 9 is done and waits for review. The other phases are not started.
 
 ## Overview
 
@@ -597,6 +597,30 @@ How it was tested, on a production build:
    - Look at each page at 375, 768, and 1440 pixels wide, in both themes.
 
 Done when: lint, type-check, tests, and build pass, and the manual list and the design tests pass.
+
+What was done:
+
+- `yarn lint` runs ESLint 9 with a flat configuration (`eslint.config.mjs`, `eslint-config-next` core-web-vitals and TypeScript rules). It passes with no errors and no warnings. The first run found 49 problems. They are fixed in the code and not hidden by rules:
+  - 20 uses of `any`. The model `toSafeObject` methods and the stats rows now have types, and API response types default to `unknown`.
+  - 17 unescaped quote characters in the Latest Updates text.
+  - The filter and dashboard `useEffect` calls that set state. The page now resets with a key check during render, and the greeting uses `useSyncExternalStore`.
+  - The book and movie dialogs kept the genre list in two places. It now lives only in the form (`useWatch`), which also removed the warning about `watch()`.
+- `yarn test` runs Vitest (`vitest.config.mts`) with `mongodb-memory-server`. There are 29 tests in `tests/server/`:
+  - `validate.test.ts`: `parseQuery` repeated keys, and literal matching of `C++`, `Se7en (1995)` (S1).
+  - `services.test.ts`: duplicate titles with regex characters (S1), deactivated user gets 401 (S2), wrong password on a deactivated account (S3), unknown email, and the rate limit, including eight parallel first requests.
+  - `routes.test.ts`: one or more Route Handlers for each module (auth, books, movies, users, AI, health, unknown path). It covers 429 after 10 failed logins, logout with an expired cookie (F3), and a rating of 8 returning 400 (F18).
+- The tests call the exported handlers with a `NextRequest`. `next/headers` is replaced by a cookie jar in `tests/setup.ts`, and every test file uses its own database.
+- To skip the first-run MongoDB download, set `MONGOMS_SYSTEM_BINARY` to a local `mongod`.
+- Performance fix found by the audit: the dashboard scene is not downloaded below 768 px. Before this, dashboard mobile Performance was 83.
+
+How it was tested, on a production build:
+
+- Manual list: 26 books across 2 pages (24 per page), counts on the dashboard match, search for `C++` and `Se7en (1995)` finds one result each, editing a book keeps and adds genres, logout sends `/books` to `/login?from=/books`, AI search answers 503 "AI search is not configured" while the rest works, dark mode has the `dark` class on the first parse (no flash).
+- Contrast scan: dashboard, books, movies, and latest updates, both themes, no failures.
+- WebGL off: the login page shows the gradient and the form works. Three.js logs one console error, which is caught.
+- Lighthouse: login mobile 93 / desktop 100, dashboard mobile 92 / desktop 100. Accessibility is 100 on all four.
+- 375 px: no sideways scroll on login.
+- Not verified: the operating-system reduced-motion setting, and the 768 px look in both themes after the Phase 7 check.
 
 ### Phase 10: Documentation and Claude files
 

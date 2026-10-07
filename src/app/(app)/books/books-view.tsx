@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { BookOpen, SearchX } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import type { Book } from "@/shared";
@@ -53,9 +53,12 @@ export function BooksView() {
   const { remove } = useMediaMutations<Book>("books");
 
   // A new filter starts again at page 1.
-  useEffect(() => {
+  const filterKey = JSON.stringify([search, statusFilter, authorFilter, readDateFilter, customDateRange]);
+  const [appliedKey, setAppliedKey] = useState(filterKey);
+  if (appliedKey !== filterKey) {
+    setAppliedKey(filterKey);
     setPage(1);
-  }, [search, statusFilter, authorFilter, readDateFilter, customDateRange]);
+  }
 
   const books = data?.books ?? [];
   const activeFilters: ActiveFilter[] = [

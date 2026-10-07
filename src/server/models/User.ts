@@ -2,10 +2,13 @@ import "server-only";
 import mongoose, { Schema, Document } from "mongoose";
 import { User, UserPreferences } from "@/shared";
 
+// The fields the toJSON and toObject transforms touch.
+type SerializedDoc = { _id: { toString(): string }; password?: unknown; __v?: unknown; [key: string]: unknown };
+
 // Mongoose document interface with methods
 export interface UserDoc extends Omit<User, "_id">, Document {
   _id: mongoose.Types.ObjectId;
-  toSafeObject(): any;
+  toSafeObject(): Record<string, unknown>;
 }
 
 // Static methods interface
@@ -92,7 +95,7 @@ const userSchema = new Schema<UserDoc>(
   {
     timestamps: true,
     toJSON: {
-      transform: function (_doc: any, ret: any) {
+      transform: function (_doc: unknown, ret: SerializedDoc) {
         ret._id = ret._id.toString();
         delete ret.password;
         delete ret.__v;
@@ -100,7 +103,7 @@ const userSchema = new Schema<UserDoc>(
       },
     },
     toObject: {
-      transform: function (_doc: any, ret: any) {
+      transform: function (_doc: unknown, ret: SerializedDoc) {
         ret._id = ret._id.toString();
         delete ret.password;
         delete ret.__v;

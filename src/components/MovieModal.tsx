@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -27,6 +27,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, X, Film } from "lucide-react";
 import { useMediaMutations } from "@/hooks/use-media";
 import { toast } from "@/hooks/use-toast";
+import { errorMessage } from "@/lib/api";
 import type { Movie } from "@/shared";
 
 // Form validation schema
@@ -94,7 +95,6 @@ export default function MovieModal({
   const open = isControlled ? controlledOpen : internalOpen;
   const setOpen = isControlled ? onOpenChange! : setInternalOpen;
 
-  const [genres, setGenres] = useState<string[]>(movie?.genres || []);
   const [newGenre, setNewGenre] = useState("");
   const { create, update } = useMediaMutations<Movie>("movies");
 
@@ -104,7 +104,7 @@ export default function MovieModal({
     formState: { errors, isSubmitting },
     reset,
     setValue,
-    watch,
+    control,
   } = useForm<MovieFormData>({
     resolver: zodResolver(movieSchema),
     defaultValues: {
@@ -121,6 +121,10 @@ export default function MovieModal({
       coverUrl: movie?.coverUrl || "",
     },
   });
+  const genres = useWatch({ control, name: "genres" });
+  const setGenres = (next: string[]) => setValue("genres", next);
+  const watchedIndustry = useWatch({ control, name: "industry" });
+  const watchedStatus = useWatch({ control, name: "status" });
 
   // Reset form when modal opens
   useEffect(() => {
@@ -139,7 +143,6 @@ export default function MovieModal({
             : "",
           coverUrl: movie.coverUrl || "",
         });
-        setGenres(movie.genres || []);
       } else {
         reset({
           title: "",
@@ -152,15 +155,9 @@ export default function MovieModal({
           completedOn: "",
           coverUrl: "",
         });
-        setGenres([]);
       }
     }
   }, [open, movie, reset]);
-
-  // Update genres in form when local state changes
-  useEffect(() => {
-    setValue("genres", genres);
-  }, [genres, setValue]);
 
   const onSubmit = async (data: MovieFormData) => {
     try {
@@ -191,10 +188,10 @@ export default function MovieModal({
         reset();
         setGenres([]);
       }
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: errorMessage(error, "Something went wrong"),
         variant: "destructive",
       });
     }
@@ -265,8 +262,8 @@ export default function MovieModal({
             <div>
               <Label htmlFor="industry">Industry *</Label>
               <Select
-                value={watch("industry")}
-                onValueChange={(value) => setValue("industry", value as any)}
+                value={watchedIndustry}
+                onValueChange={(value) => setValue("industry", value as MovieFormData["industry"])}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -284,8 +281,8 @@ export default function MovieModal({
             <div>
               <Label htmlFor="status">Status *</Label>
               <Select
-                value={watch("status")}
-                onValueChange={(value) => setValue("status", value as any)}
+                value={watchedStatus}
+                onValueChange={(value) => setValue("status", value as MovieFormData["status"])}
               >
                 <SelectTrigger>
                   <SelectValue />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Film, SearchX } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import type { Movie } from "@/shared";
@@ -57,9 +57,12 @@ export function MoviesView() {
   const { remove } = useMediaMutations<Movie>("movies");
 
   // A new filter starts again at page 1.
-  useEffect(() => {
+  const filterKey = JSON.stringify([search, statusFilter, industryFilter, watchedDateFilter, customDateRange]);
+  const [appliedKey, setAppliedKey] = useState(filterKey);
+  if (appliedKey !== filterKey) {
+    setAppliedKey(filterKey);
     setPage(1);
-  }, [search, statusFilter, industryFilter, watchedDateFilter, customDateRange]);
+  }
 
   const movies = data?.movies ?? [];
   const activeFilters: ActiveFilter[] = [

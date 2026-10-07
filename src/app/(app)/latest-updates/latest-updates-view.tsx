@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { errorMessage } from "@/lib/api";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
@@ -53,10 +53,10 @@ export function LatestUpdatesView() {
         title: "Search completed!",
         description: "Found some great recommendations for you.",
       });
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Search failed",
-        description: error.message || "Failed to search. Please try again.",
+        description: errorMessage(error, "Failed to search. Please try again."),
         variant: "destructive",
       });
     }
@@ -101,7 +101,7 @@ export function LatestUpdatesView() {
                 </label>
                 <Textarea
                   id="prompt"
-                  placeholder="e.g., 'Recommend some sci-fi books like Dune' or 'What are the best movies from 2023?' or 'Tell me about Christopher Nolan's filmography'"
+                  placeholder="e.g., 'Recommend some sci-fi books like Dune' or 'What are the best movies from 2023?' or 'Tell me about Christopher Nolan&apos;s filmography'"
                   className="min-h-[120px] resize-none transition-colors duration-200 text-base"
                   {...register("prompt")}
                   disabled={searchMutation.isPending}
@@ -239,20 +239,20 @@ export function LatestUpdatesView() {
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-books mt-1">•</span>
-                      "Best fantasy books like Lord of the Rings"
+                      &ldquo;Best fantasy books like Lord of the Rings&rdquo;
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-books mt-1">•</span>
-                      "Recent mystery novels with strong female protagonists"
+                      &ldquo;Recent mystery novels with strong female protagonists&rdquo;
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-books mt-1">•</span>
-                      "Non-fiction books about productivity and habits"
+                      &ldquo;Non-fiction books about productivity and habits&rdquo;
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-books mt-1">•</span>
-                      "What should I read if I loved The Seven Husbands of
-                      Evelyn Hugo?"
+                      &ldquo;What should I read if I loved The Seven Husbands of
+                      Evelyn Hugo?&rdquo;
                     </li>
                   </ul>
                 </div>
@@ -268,19 +268,19 @@ export function LatestUpdatesView() {
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-movies mt-1">•</span>
-                      "Action movies similar to John Wick"
+                      &ldquo;Action movies similar to John Wick&rdquo;
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-movies mt-1">•</span>
-                      "Best animated films from Studio Ghibli"
+                      &ldquo;Best animated films from Studio Ghibli&rdquo;
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-movies mt-1">•</span>
-                      "Critically acclaimed movies from 2023"
+                      &ldquo;Critically acclaimed movies from 2023&rdquo;
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-movies mt-1">•</span>
-                      "Tell me about Christopher Nolan's filmography"
+                      &ldquo;Tell me about Christopher Nolan&apos;s filmography&rdquo;
                     </li>
                   </ul>
                 </div>
