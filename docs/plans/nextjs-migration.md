@@ -1,6 +1,6 @@
 # Plan: Move Bookmarked to Next.js, Refresh the Design, and Deploy on Vercel
 
-Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 8 are committed. Phase 9 is done and waits for review. The other phases are not started.
+Status: draft for review, 2026-10-06. Updated the same day with the design phases (6, 7, 8). Phases 0 to 9 are committed and pushed. Phase 10 is done and waits for review. Phase 11 (Vercel deploy) is not started. The other phases are not started.
 
 ## Overview
 
@@ -637,6 +637,16 @@ There is no `CLAUDE.md` and no plan file in the repository today, only `Bookmark
 5. Delete `packages/bookmarked-types/MAINTENANCE.md` (the package no longer exists).
 6. `.env.example`: `MONGODB_URI`, `JWT_SECRET`, `OPENAI_API_KEY`, `OPENAI_MODEL` (M4).
 7. Mark this plan as done, with the date.
+
+What was done (2026-10-07):
+
+- `CLAUDE.md` at the root: commands, folder map, server and design rules, and four gotchas (cookie read before the database, `maxIdleTimeMS`, rate limits in MongoDB, the API baseline).
+- `README.md` is rewritten for one Next.js app: stack, local setup, variables, scripts, and the full API route table. The old "Phase 1 Completion Status" section is gone.
+- `deployment.md` is rewritten for one Vercel project: Atlas, project settings, variables, region, first checks, and how to remove the two old projects. It is the guide that Phase 11 follows.
+- `Bookmarked-PRD.md`: the "Technical Implementation Plan" section describes the Next.js design, and the roadmap has a 2026-10 note and corrected lines about Express, Vite, and the monorepo. The product sections are unchanged.
+- `.env.example` has only `MONGODB_URI`, `JWT_SECRET`, `OPENAI_API_KEY`, and `OPENAI_MODEL` (M4). `MONGODB_TEST_URI` is gone, because the tests use an in-memory database.
+- `packages/bookmarked-types/MAINTENANCE.md` was already removed with the package in Phase 5.
+- This plan is marked done except Phase 11. The plan is final when the Production deploy passes.
 
 ### Phase 11: Deploy to Vercel
 

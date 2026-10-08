@@ -896,456 +896,93 @@ All endpoints return consistent error responses with Zod validation details:
 
 ## Technical Implementation Plan
 
-### Monorepo Architecture
+> Updated 2026-10: the app was moved from an Express and Vite monorepo to one Next.js 16 app. This section describes the current design. The reasons and every decision are in `docs/plans/nextjs-migration.md`.
 
-The project uses a monorepo structure with Yarn workspaces for better code organization and shared dependencies:
+### Application Architecture
+
+Bookmarked is one Next.js app that uses the App Router. The pages and the REST API are in the same project and share one origin, so there is no CORS setting and no second server. It deploys to Vercel as one project.
 
 ```
 bookmarked/
-├── packages/
-│   └── bookmarked-types/          # Shared TypeScript types
-│       ├── package.json
-│       ├── tsconfig.json
-│       └── src/
-│           ├── index.ts           # Main exports
-│           ├── database/          # Database model types
-│           │   ├── user.ts
-│           │   ├── media.ts
-│           │   └── genre.ts
-│           ├── api/               # API request/response types
-│           │   ├── auth.ts
-│           │   ├── media.ts
-│           │   └── common.ts
-│           └── shared/            # Common interfaces
-│               ├── pagination.ts
-│               └── validation.ts
-├── backend/                       # Node.js + Express API
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── src/
-│   │   ├── app.ts                # Express app setup
-│   │   ├── server.ts             # Server entry point
-│   │   ├── config/               # Configuration files
-│   │   │   ├── database.ts
-│   │   │   ├── auth.ts
-│   │   │   └── environment.ts
-│   │   ├── controllers/          # Route controllers
-│   │   │   ├── auth.controller.ts
-│   │   │   ├── media.controller.ts
-│   │   │   └── user.controller.ts
-│   │   ├── middleware/           # Express middleware
-│   │   │   ├── auth.middleware.ts
-│   │   │   ├── validation.middleware.ts
-│   │   │   └── error.middleware.ts
-│   │   ├── models/               # Mongoose models
-│   │   │   ├── User.ts
-│   │   │   ├── Media.ts
-│   │   │   └── Genre.ts
-│   │   ├── routes/               # API routes
-│   │   │   ├── auth.routes.ts
-│   │   │   ├── media.routes.ts
-│   │   │   └── index.ts
-│   │   ├── services/             # Business logic
-│   │   │   ├── auth.service.ts
-│   │   │   ├── media.service.ts
-│   │   │   └── user.service.ts
-│   │   └── utils/                # Utility functions
-│   │       ├── jwt.ts
-│   │       ├── password.ts
-│   │       └── validation.ts
-│   └── dist/                     # Compiled JavaScript
-├── frontend/                     # React + Vite SPA
-│   ├── package.json
-│   ├── tsconfig.json
-│   ├── vite.config.ts
-│   ├── tailwind.config.js
-│   ├── src/
-│   │   ├── main.tsx              # React entry point
-│   │   ├── App.tsx               # Main app component
-│   │   ├── components/           # Reusable components
-│   │   │   ├── ui/               # Basic UI components
-│   │   │   │   ├── Button.tsx
-│   │   │   │   ├── Input.tsx
-│   │   │   │   ├── Modal.tsx
-│   │   │   │   └── Card.tsx
-│   │   │   ├── layout/           # Layout components
-│   │   │   │   ├── Header.tsx
-│   │   │   │   ├── Navigation.tsx
-│   │   │   │   └── Footer.tsx
-│   │   │   └── media/            # Media-specific components
-│   │   │       ├── MediaCard.tsx
-│   │   │       ├── MediaGrid.tsx
-│   │   │       ├── MediaForm.tsx
-│   │   │       └── MediaFilters.tsx
-│   │   ├── pages/                # Page components
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Collection.tsx
-│   │   │   ├── Login.tsx
-│   │   │   └── Register.tsx
-│   │   ├── hooks/                # Custom React hooks
-│   │   │   ├── useAuth.ts
-│   │   │   ├── useMedia.ts
-│   │   │   └── useLocalStorage.ts
-│   │   ├── services/             # API service layer
-│   │   │   ├── api.ts            # Axios configuration
-│   │   │   ├── auth.service.ts
-│   │   │   └── media.service.ts
-│   │   ├── context/              # React Context providers
-│   │   │   ├── AuthContext.tsx
-│   │   │   └── ThemeContext.tsx
-│   │   ├── utils/                # Utility functions
-│   │   │   ├── constants.ts
-│   │   │   ├── helpers.ts
-│   │   │   └── validation.ts
-│   │   └── styles/               # Global styles
-│   │       ├── globals.css
-│   │       └── components.css
-│   ├── public/                   # Static assets
-│   └── dist/                     # Build output
-├── package.json                  # Root package.json with workspaces
-├── yarn.lock                     # Yarn lock file
-├── tsconfig.json                 # Root TypeScript config
-├── .gitignore
-├── .env.example
-└── README.md
+├── src/
+│   ├── proxy.ts                  # signed-out visitors go to /login (cookie check)
+│   ├── app/
+│   │   ├── (auth)/               # login, register
+│   │   ├── (app)/                # dashboard, books, movies, latest-updates
+│   │   ├── api/                  # Route Handlers: auth, users, books, movies, openai, health
+│   │   └── globals.css           # color tokens for light and dark
+│   ├── server/                   # server only
+│   │   ├── env.ts, db.ts, rate-limit.ts
+│   │   ├── auth/                 # session cookie, password hashing
+│   │   ├── http/                 # route() wrapper, errors, validation helpers
+│   │   ├── models/               # Mongoose models: User, Book, Movie, RateLimit
+│   │   └── services/             # business logic for each module
+│   ├── shared/                   # Zod schemas and types for server and client
+│   ├── components/               # layout, media, ui, three (background scene)
+│   └── contexts/, hooks/, lib/
+├── tests/server/                 # Vitest tests
+├── docs/                         # migration plan, API baseline
+├── next.config.ts                # security headers
+└── package.json                  # one package, no workspaces
 ```
 
-### Root Package.json Configuration
+### Main Dependencies
 
-```json
-{
-  "name": "bookmarked",
-  "private": true,
-  "workspaces": ["packages/*", "backend", "frontend"],
-  "scripts": {
-    "dev": "concurrently \"yarn workspace backend dev\" \"yarn workspace frontend dev\"",
-    "build": "yarn workspace bookmarked-types build && yarn workspace backend build && yarn workspace frontend build",
-    "start": "yarn workspace backend start",
-    "type-check": "yarn workspaces run type-check",
-    "lint": "yarn workspaces run lint"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.2",
-    "typescript": "^5.3.3"
-  }
-}
-```
-
-### Shared Types Package (packages/bookmarked-types)
-
-#### Package.json
-
-```json
-{
-  "name": "bookmarked-types",
-  "version": "1.0.0",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "type-check": "tsc --noEmit"
-  },
-  "dependencies": {
-    "zod": "^3.22.4"
-  },
-  "devDependencies": {
-    "typescript": "^5.3.3"
-  }
-}
-```
-
-#### Key Type Definitions
-
-```typescript
-// packages/bookmarked-types/src/database/user.ts
-export interface User {
-  _id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  createdAt: Date;
-  updatedAt: Date;
-  isActive: boolean;
-  emailVerified: boolean;
-  lastLogin?: Date;
-  preferences: UserPreferences;
-}
-
-export interface UserPreferences {
-  defaultView: "grid" | "list";
-  itemsPerPage: number;
-  theme: "light" | "dark";
-}
-
-// packages/bookmarked-types/src/database/media.ts
-export interface Media {
-  _id: string;
-  userId: string;
-  type: "book" | "movie";
-  title: string;
-  author?: string;
-  director?: string;
-  coverUrl?: string;
-  genres: string[];
-  status: "want" | "current" | "completed" | "abandoned";
-  rating?: number;
-  review?: string;
-  dateCompleted?: Date;
-  customTags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  isbn?: string;
-  imdbId?: string;
-  pageCount?: number;
-  runtime?: number;
-  releaseYear?: number;
-}
-
-// packages/bookmarked-types/src/api/auth.ts
-import { z } from "zod";
-
-export const RegisterSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  firstName: z.string().min(1).max(50),
-  lastName: z.string().min(1).max(50),
-});
-
-export const LoginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
-});
-
-export type RegisterRequest = z.infer<typeof RegisterSchema>;
-export type LoginRequest = z.infer<typeof LoginSchema>;
-```
-
-### Backend Dependencies (backend/package.json)
-
-#### Production Dependencies
-
-```json
-{
-  "dependencies": {
-    "bookmarked-types": "workspace:*",
-    "express": "^4.18.2",
-    "mongoose": "^8.0.3",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "morgan": "^1.10.0",
-    "dotenv": "^16.3.1",
-    "zod": "^3.22.4",
-    "nodemailer": "^6.9.7",
-    "better-auth": "^0.8.0",
-    "better-auth/adapters/mongoose": "^0.8.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.3.3",
-    "@types/node": "^20.10.5",
-    "@types/express": "^4.17.21",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/jsonwebtoken": "^9.0.5",
-    "@types/cors": "^2.8.17",
-    "@types/morgan": "^1.9.9",
-    "@types/nodemailer": "^6.4.14",
-    "ts-node": "^10.9.2",
-    "nodemon": "^3.0.2",
-    "eslint": "^8.56.0",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0"
-  }
-}
-```
-
-#### Key Backend Implementation Features
-
-- **TypeScript**: Full type safety with strict mode enabled
-- **Zod Validation**: Schema validation for all API endpoints
-- **Mongoose**: MongoDB ODM with TypeScript support
-- **JWT Authentication**: Secure token-based authentication with HTTP-only cookies
-- **Better Auth**: OAuth 2.0 integration with Google provider
-- **Express Middleware**: CORS, Helmet, Morgan for security and logging
-- **Environment Configuration**: Dotenv for environment variables
-
-### Frontend Dependencies (frontend/package.json)
-
-#### Production Dependencies
-
-```json
-{
-  "dependencies": {
-    "bookmarked-types": "workspace:*",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "react-hook-form": "^7.48.2",
-    "@hookform/resolvers": "^3.3.2",
-    "@tanstack/react-query": "^5.81.5",
-    "@tanstack/react-query-devtools": "^5.81.5",
-    "axios": "^1.6.2",
-    "zod": "^3.22.4",
-    "clsx": "^2.0.0",
-    "lucide-react": "^0.525.0",
-    "@radix-ui/react-toast": "^1.2.14",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-icons": "^1.3.2",
-    "better-auth/react": "^0.8.0"
-  },
-  "devDependencies": {
-    "typescript": "^5.3.3",
-    "@types/react": "^18.2.43",
-    "@types/react-dom": "^18.2.17",
-    "@vitejs/plugin-react": "^4.2.1",
-    "vite": "^5.0.8",
-    "tailwindcss": "^3.3.6",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32",
-    "eslint": "^8.56.0",
-    "eslint-plugin-react": "^7.33.2",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "@typescript-eslint/eslint-plugin": "^6.15.0",
-    "@typescript-eslint/parser": "^6.15.0"
-  }
-}
-```
-
-#### Key Frontend Implementation Features
-
-- **React 18**: Latest React with concurrent features
-- **TypeScript**: Full type safety throughout the application
-- **Vite**: Fast build tool with HMR for development
-- **TailwindCSS**: Utility-first CSS framework with dark mode support
-- **Shadcn UI**: Modern component library built on Radix UI primitives
-- **React Hook Form**: Form handling with Zod validation
-- **TanStack Query**: Server state management and caching
-- **Axios**: HTTP client with TypeScript support
-- **React Router**: Client-side routing
-- **Toast Notifications**: Accessible toast system using Radix UI
-- **Theme System**: Dark/light/system theme switching with persistence
+- **Framework:** Next.js 16, React 19, TypeScript
+- **Data:** MongoDB with Mongoose 8
+- **Auth:** `jose` (signed session cookie), `bcryptjs`
+- **Validation:** Zod, shared by the API and the forms
+- **UI:** Tailwind CSS 3, shadcn/ui with Radix, `next-themes`, `lucide-react`
+- **Client data:** TanStack Query, React Hook Form, axios
+- **3D:** `three` (plain, no wrapper library)
+- **AI:** `openai`, optional
+- **Quality:** ESLint 9, Vitest, `mongodb-memory-server`
 
 ### Development Environment Setup
 
-#### Prerequisites
-
-- Node.js 18+ (LTS recommended)
-- Yarn 1.22+ (package manager)
-- MongoDB 6.0+ (local or Atlas)
-- Git for version control
-
-#### Initial Setup Commands
-
 ```bash
-# Clone repository
-git clone <repository-url>
-cd bookmarked
-
-# Install all dependencies
 yarn install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Build shared types package
-yarn workspace bookmarked-types build
-
-# Start development servers
-yarn dev
-```
-
-#### Environment Variables (.env)
-
-```bash
-# Database
-MONGODB_URI=mongodb://localhost:27017/bookmarked
-MONGODB_TEST_URI=mongodb://localhost:27017/bookmarked-test
-
-# Authentication
-JWT_SECRET=your-super-secret-jwt-key
-JWT_EXPIRES_IN=24h
-
-# Email (for user verification)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-
-# Application
-NODE_ENV=development
-PORT=3001
-FRONTEND_URL=http://localhost:5173
-
-# CORS
-ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+cp .env.example .env.local   # MONGODB_URI, JWT_SECRET, optional OPENAI_API_KEY
+yarn dev                     # http://localhost:3000
+yarn type-check && yarn lint && yarn test
 ```
 
 ### State Management Strategy
 
-#### Backend State
+#### Server State
 
-- **Database**: MongoDB with Mongoose ODM
-- **Session Management**: JWT tokens with Redis for blacklisting (future)
-- **Caching**: In-memory caching for frequently accessed data
+- **Database:** MongoDB with Mongoose. One connection is cached per server instance.
+- **Session:** a signed JWT in an `httpOnly` cookie (7 days). The server checks the user in the database on each request, so a deactivated user is locked out at once.
+- **Rate limits:** counters in MongoDB with a TTL index, because memory counters do not work on serverless.
 
-#### Frontend State
+#### Client State
 
-- **Server State**: React Query for API data caching and synchronization
-- **Client State**: React Context API for authentication and theme
-- **Form State**: React Hook Form with Zod validation
-- **Local Storage**: User preferences and temporary data
-
-#### State Flow Example
-
-```typescript
-// Frontend service layer
-import { Media, CreateMediaRequest } from "bookmarked-types";
-import { api } from "./api";
-
-export const mediaService = {
-  async getMedia(filters?: MediaFilters): Promise<PaginatedResponse<Media>> {
-    const response = await api.get("/media", { params: filters });
-    return response.data;
-  },
-
-  async createMedia(data: CreateMediaRequest): Promise<Media> {
-    const response = await api.post("/media", data);
-    return response.data.data;
-  },
-};
-
-// React Query hook
-export const useMedia = (filters?: MediaFilters) => {
-  return useQuery(["media", filters], () => mediaService.getMedia(filters), {
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
-  });
-};
-```
+- **Server data:** TanStack Query caches API data and refreshes it after changes.
+- **Auth and theme:** React Context (`AuthContext`) and `next-themes`. The layout loads the user on the server.
+- **Forms:** React Hook Form with the Zod schemas from `src/shared`.
 
 ---
 
 ## Project Roadmap & Milestones
 
+> Update 2026-10: Phases 1 to 3 below were built as an Express and Vite monorepo. They were then migrated to one Next.js app, and the app got a new design (palette, typefaces, motion, and a quiet Three.js scene). The migration phases are in `docs/plans/nextjs-migration.md`. File names in the weekly lists below describe the original plan.
+
 ### Development Timeline: 16 Weeks Total
 
 #### Phase 1: Foundation & Setup (Weeks 1-4)
 
-**Goal**: Establish project foundation with TypeScript monorepo and shared types
+**Goal**: Establish project foundation with TypeScript and shared types
 
 **Week 1-2: Project Setup**
 
-- Set up monorepo structure with Yarn workspaces
-- Create shared types package (bookmarked-types)
-- Configure TypeScript for all packages
+- Set up the project structure (now one Next.js app, see the 2026-10 migration)
+- Create shared types and Zod schemas (now `src/shared`)
+- Configure TypeScript
 - Set up development environment and tooling
 
 **Week 3-4: Backend Foundation**
 
-- Set up Express.js server with TypeScript
+- Set up the API with TypeScript (now Next.js Route Handlers)
 - Configure MongoDB connection with Mongoose
 - Implement Zod validation middleware
 - Create user authentication system (register/login/logout)
@@ -1354,14 +991,14 @@ export const useMedia = (filters?: MediaFilters) => {
 
 **Deliverables**:
 
-- Working monorepo with shared types
+- Working project with shared types
 - Backend API with authentication endpoints
 - Database models and schemas
 - Development environment documentation
 
 **Success Criteria**:
 
-- All packages build without TypeScript errors
+- The app builds without TypeScript errors
 - User registration and login working
 - JWT authentication functional
 - Database connection established
@@ -1406,7 +1043,7 @@ export const useMedia = (filters?: MediaFilters) => {
 
 **Week 9-10: Frontend Foundation**
 
-- Set up React + Vite + TypeScript project
+- Set up the React + TypeScript frontend (now the Next.js App Router)
 - Configure TailwindCSS and design system
 - Implement authentication pages (login/register)
 - Create routing structure with React Router
@@ -1478,9 +1115,9 @@ export const useMedia = (filters?: MediaFilters) => {
    - **Mitigation**: Start with simple types, iterate gradually
    - **Contingency**: Simplify type definitions if blocking progress
 
-2. **Monorepo Setup**: Workspace dependencies and build order
+2. **Project Setup**: Tooling and build order (now one package, so this risk is gone)
 
-   - **Mitigation**: Use proven tools (Yarn workspaces)
+   - **Mitigation**: Use proven tools (Next.js defaults)
    - **Contingency**: Fallback to separate repositories if needed
 
 3. **Performance Requirements**: API response times and frontend loading
@@ -1686,13 +1323,13 @@ export const useMedia = (filters?: MediaFilters) => {
 
 This Project Requirements Document provides a comprehensive roadmap for building Bookmarked, a personal media tracking application that prioritizes simplicity, visual appeal, and user privacy. The phased approach ensures a solid foundation while allowing for future growth and feature expansion.
 
-The technical architecture leverages modern, proven technologies (React, Node.js, MongoDB) with a TypeScript-first monorepo structure that supports scalable development. The emphasis on type safety, performance, and accessibility ensures a high-quality user experience across all devices.
+The technical architecture leverages modern, proven technologies (Next.js, React, MongoDB) with a TypeScript-first single Next.js app that supports scalable development. The emphasis on type safety, performance, and accessibility ensures a high-quality user experience across all devices.
 
 Key success factors include:
 
 - **User-Centric Design**: Clean, intuitive interface focused on the core use case
 - **Technical Excellence**: Robust TypeScript architecture with comprehensive validation
-- **Scalable Foundation**: Monorepo structure that supports future enhancements
+- **Scalable Foundation**: One typed Next.js app with shared schemas that supports future enhancements
 - **Privacy Focus**: Personal tracking without social pressure
 - **Performance First**: Fast, responsive experience on all devices
 - **Type Safety**: Full TypeScript integration across the entire stack
