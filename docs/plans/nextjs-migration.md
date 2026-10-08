@@ -328,7 +328,7 @@ Done when: every route in the table gives the same answers as the Express route 
 
 What was done:
 
-1. Providers: `src/app/providers.tsx` holds TanStack Query, `next-themes` (M7), and the toaster. React Query Devtools load only in development. The query client is created once for each browser session.
+1. Providers: `src/app/providers.tsx` holds TanStack Query, the theme (M7; since Phase 11 prep a small own script in `src/lib/theme.ts`, because `next-themes` renders a script tag from a client component and React 19 warns about it), and the toaster. React Query Devtools load only in development. The query client is created once for each browser session.
 2. Routes: `(auth)/login`, `(auth)/register`, `(app)/dashboard`, `(app)/books`, `(app)/movies`, and `(app)/latest-updates`. Each `page.tsx` is a small Server Component with a title. The page body is a client component in the same folder, for example `books-view.tsx`. `/` redirects to `/dashboard`.
 3. Router: `useNavigate()` became `useRouter()`, `<Link to>` became `<Link href>`, and `useLocation()` became `usePathname()`.
 4. Auth, in three layers:
@@ -658,6 +658,25 @@ What was done (2026-10-07):
 6. After you approve, merge and deploy Production. Then delete the two old Vercel projects (`bookmarked-backend`, `bookmarked-frontend`). Only you can do this step.
 
 Done when: the Production URL passes the manual list, and the old projects are removed.
+
+Status (2026-10-08): started. Only steps 1 to 4 and 6 need you, because they need your Vercel, Atlas, and secret values. The Vercel CLI is not installed here, so I cannot create the project.
+
+Pre-flight, done:
+
+- `yarn build` passes with `MONGODB_URI` and `JWT_SECRET` unset, so a Preview with missing variables still builds. The build never opens the database.
+- No `vercel.json` is needed. The region is a project setting, there is no CORS setting, and the AI route sets its own `maxDuration`.
+- The two old projects fail every PR check (`bookmarked-backend`, `bookmarked-backend-b5sq`). The new project replaces them.
+
+Your steps, in order:
+
+1. Atlas: create a database user, add `0.0.0.0/0` to Network Access, and copy the connection string. Use the database name `bookmarked-preview` for Preview and `bookmarked` for Production. Note the cluster region.
+2. Vercel: import the repository as a new project, keep the repository root and the Next.js preset, and set the production branch to `main`.
+3. Variables, for Preview and Production: `MONGODB_URI`, `JWT_SECRET` (a different value in each, from `openssl rand -base64 48`), and optionally `OPENAI_API_KEY`.
+4. Settings, Functions: set the region nearest to the Atlas cluster.
+5. Push or redeploy `chore-nextjs-launch`, then give me the Preview URL.
+6. After my Preview check passes and you approve: merge #1 to #5 in order, then delete the two old projects.
+
+My steps once you give me the Preview URL: open `/api/health`, then run the manual list from Phase 9 (register, 25 books across pages, `C++` and `Se7en (1995)` search, logout redirect, AI message, dark mode, and Lighthouse) and report what I find.
 
 ## Risks
 

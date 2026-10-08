@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "./providers";
+import { themeScript } from "@/lib/theme";
 import "./globals.css";
 
 // next/font serves the files from this app: no request to Google at run time, no layout shift.
@@ -18,8 +19,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    // next-themes sets the theme class before hydration, so the server and client html differ
+    // The theme script sets the class before hydration, so the server and client html differ
     <html lang="en" className={`${inter.variable} ${fraunces.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <Providers>{children}</Providers>
       </body>

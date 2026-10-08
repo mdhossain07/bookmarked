@@ -932,7 +932,7 @@ bookmarked/
 - **Data:** MongoDB with Mongoose 8
 - **Auth:** `jose` (signed session cookie), `bcryptjs`
 - **Validation:** Zod, shared by the API and the forms
-- **UI:** Tailwind CSS 3, shadcn/ui with Radix, `next-themes`, `lucide-react`
+- **UI:** Tailwind CSS 3, shadcn/ui with Radix, `lucide-react`
 - **Client data:** TanStack Query, React Hook Form, axios
 - **3D:** `three` (plain, no wrapper library)
 - **AI:** `openai`, optional
@@ -958,7 +958,7 @@ yarn type-check && yarn lint && yarn test
 #### Client State
 
 - **Server data:** TanStack Query caches API data and refreshes it after changes.
-- **Auth and theme:** React Context (`AuthContext`) and `next-themes`. The layout loads the user on the server.
+- **Auth and theme:** React Context (`AuthContext`) and a small theme script (`src/lib/theme.ts`). The layout loads the user on the server.
 - **Forms:** React Hook Form with the Zod schemas from `src/shared`.
 
 ---
