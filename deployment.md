@@ -1,62 +1,46 @@
-# Bookmarked Deployment Guide (Vercel)
+# Deploy to Vercel
 
-This guide outlines the steps to deploy the **Bookmarked** application (Frontend and Backend) to Vercel.
+Bookmarked is one Next.js project. You create one Vercel project and one MongoDB Atlas database.
 
-## 1. Prerequisites
+## 1. Before you start
 
-- A [Vercel Account](https://vercel.com/signup).
-- Your code pushed to a Git provider (GitHub/GitLab/Bitbucket).
+- A Vercel account and a Git provider with this repository.
+- A MongoDB Atlas cluster. Note its region.
+- An OpenAI API key, if you want AI search. It is optional.
 
-## 2. Preparation (Monorepo Setup)
+## 2. Atlas
 
-This project is a monorepo. We will deploy it as **two separate Vercel projects** linked to the same repository.
+1. Create a database user with a strong password.
+2. Open Network Access. Vercel has no fixed IP addresses on the Hobby plan, so add `0.0.0.0/0`. The strong password is your protection. You can also use the MongoDB Atlas integration from the Vercel Marketplace.
+3. Copy the connection string. Add a database name, for example `.../bookmarked?retryWrites=true&w=majority`.
+4. Use a different database name for Preview, for example `bookmarked-preview`.
 
-### Done for you:
+## 3. Vercel project
 
-I have already created the necessary files to make the backend Vercel-compatible:
+1. Click **Add New > Project** and import the repository.
+2. Keep **Root Directory** as the repository root and **Framework Preset** as Next.js. Keep the default build command.
+3. Add these environment variables for Production and Preview:
+   - `MONGODB_URI`
+   - `JWT_SECRET` (at least 32 characters, a different value for each environment)
+   - `OPENAI_API_KEY` (optional)
+   - `OPENAI_MODEL` (optional)
+4. Open **Settings > Functions** and set the function region to the one nearest to your Atlas cluster.
+5. Click **Deploy**.
 
-- `backend/api/index.ts`: Entry point for Serverless Functions.
-- `backend/vercel.json`: Configuration to rewrite requests to the API.
+There is no `vercel.json` and no CORS setting. The pages and the API share one origin.
 
-## 3. Deployment Steps
+## 4. After the first deploy
 
-### Step A: Deploy Backend
+1. Open `/api/health` on the deployment URL. It must answer 200 with `"db": "connected"`. A 503 means that the app cannot reach Atlas, so check the network access list and `MONGODB_URI`.
+2. Register a user, add a book, log out, and log in again.
+3. If you set `OPENAI_API_KEY`, try AI search. Without it, the page shows a clear message.
 
-1.  Go to your Vercel Dashboard and click **Add New > Project**.
-2.  Import your `bookmarked` repository.
-3.  Configure the project as follows:
-    - **Project Name**: `bookmarked-backend` (suggested)
-    - **Framework Preset**: Other
-    - **Root Directory**: Click `Edit` and select `backend`.
-    - **Build Command**: `cd .. && yarn install --production=false && yarn workspace bookmarked-types build && cd backend && yarn build`
-      > _Note: This ensures the shared types package is built before the backend._
-    - **Output Directory**: Leave empty / default (Do **NOT** set to `dist`).
-    - **Install Command**: `yarn install` (or leave default if it detects yarn)
-4.  **Environment Variables**:
-    Add the variables from your `backend/.env` file. These are critical:
-    - `MONGODB_URI`
-    - `JWT_SECRET`
-    - `OPENAI_API_KEY`
-    - `NODE_ENV` (set to `production`)
-    - `APP_PORT` (optional, can be ignored as Vercel handles ports)
-    - `CORS_ORIGIN` (Set to your _future_ frontend URL, e.g., `https://bookmarked-frontend.vercel.app`)
-5.  Click **Deploy**.
+## 5. Moving from the old two-project setup
 
-### Step B: Deploy Frontend
+The old setup had `bookmarked-backend` and `bookmarked-frontend`. After the new project works, delete both old projects in the Vercel dashboard. The old `VITE_API_URL` and `CORS_ORIGIN` variables are not used any more.
 
-1.  Go to Vercel Dashboard and click **Add New > Project** (again).
-2.  Import the **same** `bookmarked` repository.
-3.  Configure the project:
-    - **Project Name**: `bookmarked-frontend`
-    - **Framework Preset**: Vite (should be auto-detected)
-    - **Root Directory**: Click `Edit` and select `frontend`.
-    - **Build Command**: Leave default (`vite build` or `npm run build`).
-    - **Output Directory**: Leave default (`dist`).
-4.  **Environment Variables**:
-    - `VITE_API_URL`: Set this to your **Backend URL** from Step A (e.g., `https://bookmarked-backend.vercel.app/api`).
-5.  Click **Deploy**.
+## Troubleshooting
 
-## 4. Post-Deployment
-
-1.  **Update CORS**: Once the Frontend is deployed, go back to the **Backend Project Settings > Environment Variables** and update `CORS_ORIGIN` to match your actual Frontend URL (e.g., `https://bookmarked-frontend-xyza.vercel.app`). Redeploy the backend for changes to take effect.
-2.  **Verify**: Visit your frontend URL. It should load and successfully communicate with the backend.
+- **Build says `Invalid environment variables`:** a variable is missing or too short. The message names it.
+- **Login works, then you return to the login page:** the cookie is `secure` in production, so use the HTTPS URL.
+- **AI search is slow:** the function can run up to 60 seconds (`maxDuration`).

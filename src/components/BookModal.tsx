@@ -1,0 +1,372 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { X, Plus, BookOpen } from "lucide-react";
+import { useMediaMutations } from "@/hooks/use-media";
+import { toast } from "@/hooks/use-toast";
+import { errorMessage } from "@/lib/api";
+import type { Book } from "@/shared";
+
+// Form validation schema
+const bookSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200, "Title too long"),
+  author: z.string().optional(),
+  genres: z.array(z.string()).min(1, "At least one genre is required"),
+  status: z.enum(["read", "reading", "will read"]),
+  rating: z.number().min(1).max(5).optional(),
+  review: z.string().max(2000, "Review too long").optional(),
+  completedOn: z.string().optional(),
+  coverUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+});
+
+type BookFormData = z.infer<typeof bookSchema>;
+
+interface BookModalProps {
+  book?: Book;
+  isEdit?: boolean;
+  trigger?: React.ReactNode;
+}
+
+export default function BookModal({
+  book,
+  isEdit = false,
+  trigger,
+  open: controlledOpen,
+  onOpenChange,
+}: BookModalProps & {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? onOpenChange! : setInternalOpen;
+
+  const [newGenre, setNewGenre] = useState("");
+  const { create, update } = useMediaMutations<Book>("books");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
+    setValue,
+    control,
+  } = useForm<BookFormData>({
+    resolver: zodResolver(bookSchema),
+    defaultValues: {
+      title: book?.title || "",
+      author: book?.author || "",
+      genres: book?.genres || [],
+      status: book?.status || "will read",
+      rating: book?.rating || undefined,
+      review: book?.review || "",
+      completedOn: book?.completedOn
+        ? new Date(book.completedOn).toISOString().split("T")[0]
+        : "",
+      coverUrl: book?.coverUrl || "",
+    },
+  });
+  const genres = useWatch({ control, name: "genres" });
+  const setGenres = (next: string[]) => setValue("genres", next);
+  const watchedStatus = useWatch({ control, name: "status" });
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (open) {
+      if (book) {
+        reset({
+          title: book.title || "",
+          author: book.author || "",
+          genres: book.genres || [],
+          status: book.status || "will read",
+          rating: book.rating || undefined,
+          review: book.review || "",
+          completedOn: book.completedOn
+            ? new Date(book.completedOn).toISOString().split("T")[0]
+            : "",
+          coverUrl: book.coverUrl || "",
+        });
+      } else {
+        reset({
+          title: "",
+          author: "",
+          genres: [],
+          status: "will read",
+          rating: undefined,
+          review: "",
+          completedOn: "",
+          coverUrl: "",
+        });
+      }
+    }
+  }, [open, book, reset]);
+
+  const onSubmit = async (data: BookFormData) => {
+    try {
+      const bookData = {
+        ...data,
+        genres,
+        completedOn: data.completedOn ? new Date(data.completedOn) : undefined,
+        rating: data.rating || undefined,
+        coverUrl: data.coverUrl || undefined,
+      };
+
+      if (isEdit && book) {
+        await update.mutateAsync({ id: book._id, data: bookData });
+        toast({
+          title: "Success",
+          description: "Book updated successfully!",
+        });
+      } else {
+        await create.mutateAsync(bookData);
+        toast({
+          title: "Success",
+          description: "Book added successfully!",
+        });
+      }
+
+      setOpen(false);
+      if (!isEdit) {
+        reset();
+        setGenres([]);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: errorMessage(error, "Something went wrong"),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const addGenre = () => {
+    if (
+      newGenre.trim() &&
+      !genres.includes(newGenre.trim()) &&
+      genres.length < 10
+    ) {
+      setGenres([...genres, newGenre.trim()]);
+      setNewGenre("");
+    }
+  };
+
+  const removeGenre = (genreToRemove: string) => {
+    setGenres(genres.filter((genre) => genre !== genreToRemove));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addGenre();
+    }
+  };
+
+  const defaultTrigger = (
+    <Button>
+      <BookOpen className="w-4 h-4 mr-2" />
+      Add Book
+    </Button>
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {isEdit ? "Edit Book" : "Add New Book"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Title */}
+          <div className="space-y-2">
+            <Label htmlFor="title">Title *</Label>
+            <Input
+              id="title"
+              {...register("title")}
+              placeholder="Enter book title"
+              className="focus:ring-2 focus:ring-ring"
+            />
+            {errors.title && (
+              <p className="text-sm text-destructive">{errors.title.message}</p>
+            )}
+          </div>
+
+          {/* Author */}
+          <div className="space-y-2">
+            <Label htmlFor="author">Author</Label>
+            <Input
+              id="author"
+              {...register("author")}
+              placeholder="Enter author name"
+              className="focus:ring-2 focus:ring-ring"
+            />
+            {errors.author && (
+              <p className="text-sm text-destructive">{errors.author.message}</p>
+            )}
+          </div>
+
+          {/* Genres */}
+          <div className="space-y-2">
+            <Label>Genres *</Label>
+            <div className="flex gap-2">
+              <Input
+                value={newGenre}
+                onChange={(e) => setNewGenre(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Add a genre"
+                className="focus:ring-2 focus:ring-ring"
+              />
+              <Button type="button" onClick={addGenre} variant="outline">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              {genres.map((genre, index) => (
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
+                  {genre}
+                  <X
+                    className="w-3 h-3 cursor-pointer hover:text-destructive"
+                    onClick={() => removeGenre(genre)}
+                  />
+                </Badge>
+              ))}
+            </div>
+            {errors.genres && (
+              <p className="text-sm text-destructive">{errors.genres.message}</p>
+            )}
+          </div>
+
+          {/* Status and Rating */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status">Status *</Label>
+              <Select
+                value={watchedStatus}
+                onValueChange={(value) => setValue("status", value as BookFormData["status"])}
+              >
+                <SelectTrigger className="focus:ring-2 focus:ring-ring">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="will read">Will Read</SelectItem>
+                  <SelectItem value="reading">Reading</SelectItem>
+                  <SelectItem value="read">Read</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rating">Rating (1-5)</Label>
+              <Input
+                id="rating"
+                type="number"
+                min="1"
+                max="5"
+                step="0.5"
+                // empty input means "no rating"; valueAsNumber would send NaN and block the save (F17)
+                {...register("rating", { setValueAs: (value) => (value === "" ? undefined : Number(value)) })}
+                placeholder="Rate this book"
+                className="focus:ring-2 focus:ring-ring"
+              />
+              {errors.rating && (
+                <p className="text-sm text-destructive">{errors.rating.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Completed Date */}
+          <div className="space-y-2">
+            <Label htmlFor="completedOn">Completion Date</Label>
+            <Input
+              id="completedOn"
+              type="date"
+              {...register("completedOn")}
+              className="focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          {/* Cover URL */}
+          <div className="space-y-2">
+            <Label htmlFor="coverUrl">Cover Image URL</Label>
+            <Input
+              id="coverUrl"
+              {...register("coverUrl")}
+              placeholder="https://example.com/book-cover.jpg"
+              className="focus:ring-2 focus:ring-ring"
+            />
+            {errors.coverUrl && (
+              <p className="text-sm text-destructive">{errors.coverUrl.message}</p>
+            )}
+          </div>
+
+          {/* Review */}
+          <div className="space-y-2">
+            <Label htmlFor="review">Review</Label>
+            <Textarea
+              id="review"
+              {...register("review")}
+              placeholder="Write your thoughts about this book..."
+              rows={4}
+              className="focus:ring-2 focus:ring-ring"
+            />
+            {errors.review && (
+              <p className="text-sm text-destructive">{errors.review.message}</p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-between gap-3 pt-4">
+            <div className="flex gap-2 ml-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting
+                  ? "Saving..."
+                  : isEdit
+                  ? "Update Book"
+                  : "Add Book"}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
